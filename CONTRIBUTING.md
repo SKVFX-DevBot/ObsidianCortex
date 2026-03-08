@@ -1,109 +1,144 @@
 # Contributing to Cortex
 
-First off, thank you for considering contributing to Cortex! It's people like you that make this template better for everyone.
+Thank you for considering contributing to Cortex! This document covers how to report bugs, suggest features, and submit code changes.
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by our [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
+This project is governed by our [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold it.
 
-## How Can I Contribute?
+---
 
-### Reporting Bugs
+## Reporting Bugs
 
-Before creating bug reports, please check the existing issues to avoid duplicates. When you create a bug report, include as many details as possible using our bug report template.
+Before filing a bug report, check [existing issues](https://github.com/ScottKirvan/Cortex/issues) to avoid duplicates.
 
-**Guidelines for bug reports:**
-- Use a clear and descriptive title
-- Describe the exact steps to reproduce the problem
-- Provide specific examples to demonstrate the steps
-- Describe the behavior you observed and what you expected to see
-- Include screenshots if applicable
-- Note your environment (OS, version, etc.)
+**Include in your bug report:**
+- Steps to reproduce
+- What you expected vs. what happened
+- Obsidian version, OS, and Cortex version
+- Any relevant error messages from the developer console (Ctrl/Cmd+Shift+I in Obsidian)
 
-### Suggesting Enhancements
+---
 
-Enhancement suggestions are tracked as GitHub issues. When creating an enhancement suggestion, use our feature request template and include:
+## Suggesting Features
 
-- A clear and descriptive title
-- A detailed description of the proposed feature
-- Examples of how the feature would be used
-- Why this enhancement would be useful
+Use the [feature request template](https://github.com/ScottKirvan/Cortex/issues/new?template=feature_request.md). Describe the use case clearly — what problem it solves and how you'd expect it to work.
 
-### Pull Requests
-
-**Before submitting a pull request:**
-
-1. Fork the repository and create your branch from `main`
-2. If you've added code, add tests if applicable
-3. Ensure your code follows the existing style
-4. Make sure your commits follow our commit message conventions
-5. Update documentation as needed
-
-**Commit Message Convention:**
-
-We use [Conventional Commits](https://www.conventionalcommits.org/) with [Semantic Versioning](https://semver.org/):
-
-- `feat:` - New features (bumps MINOR version)
-- `fix:` - Bug fixes (bumps PATCH version)
-- `feat!:` or `fix!:` - Breaking changes (bumps MAJOR version)
-- `docs:` - Documentation only changes
-- `style:` - Code style changes (formatting, etc.)
-- `refactor:` - Code refactoring
-- `test:` - Adding or updating tests
-- `chore:` - Maintenance tasks
-
-**Examples:**
-```
-feat: add Python .gitignore template
-fix: correct LICENSE badge URL in README
-docs: update installation instructions
-feat!: change template initialization workflow
-```
-
-### Pull Request Process
-
-1. Update the README.md with details of changes if applicable
-2. Update the CHANGELOG.md is handled automatically by Release Please
-3. The PR will be merged once you have approval from a maintainer
-4. Your PR should pass all checks and have no merge conflicts
+---
 
 ## Development Setup
 
-1. Fork and clone the repository
-2. Create a new branch for your feature/fix
-3. Make your changes
-4. Test your changes by creating a new repository from your template
-5. Submit a pull request
+### Prerequisites
 
-## Project Structure
+- Node.js 18+
+- npm
+- Claude Code CLI installed natively (not just in WSL on Windows)
+- Obsidian desktop
+- A throwaway test vault (do not develop against your real vault)
+
+### Clone and Build
+
+```bash
+git clone https://github.com/ScottKirvan/Cortex.git
+cd Cortex
+npm install
+npm run build      # one-shot build → main.js
+npm run dev        # watch mode (rebuilds on save)
+```
+
+### Test Vault Setup
+
+Link the plugin into a throwaway Obsidian vault for live testing.
+
+**Mac/Linux:**
+```bash
+ln -s /path/to/Cortex /path/to/test-vault/.obsidian/plugins/cortex
+```
+
+**Windows (PowerShell, run as admin):**
+```powershell
+New-Item -ItemType Directory -Force -Path "D:\test-vault\.obsidian\plugins"
+New-Item -ItemType SymbolicLink `
+  -Path "D:\test-vault\.obsidian\plugins\cortex" `
+  -Target "D:\path\to\Cortex"
+```
+
+In Obsidian:
+1. Open the test vault
+2. Settings → Community Plugins → disable Safe Mode
+3. Enable **Cortex** in the installed plugins list
+
+### Fast Iteration
+
+Install the [Hot Reload](https://github.com/pjeby/hot-reload) community plugin in your test vault. With `npm run dev` running, saving any source file rebuilds and reloads the plugin automatically — no manual restart needed.
+
+Without Hot Reload: use Ctrl/Cmd+P → "Reload app without saving" after each build.
+
+### Project Structure
 
 ```
 Cortex/
-├── .github/
-│   ├── gitignore-templates/  # Example .gitignore files
-│   ├── ISSUE_TEMPLATE/       # Issue templates
-│   ├── workflows/            # GitHub Actions
-│   └── PULL_REQUEST_TEMPLATE.md
-├── assets/                   # Images and CSS for GitHub Pages
-├── notes/                    # CHANGELOG, VERSION, TODO
-├── README.md
-├── LICENSE.md
-└── CONTRIBUTING.md
+  main.ts                 ← plugin entry point
+  manifest.json           ← plugin metadata (id, name, version)
+  package.json
+  tsconfig.json
+  esbuild.config.mjs
+  src/
+    ClaudeView.ts         ← chat panel UI (ItemView subclass)
+    ClaudeSession.ts      ← session load/save/resume
+    ClaudeProcess.ts      ← binary detection, spawn, stream-json parsing
+    ContextManager.ts     ← context file, pinned notes, frontmatter scanning
+    FrontmatterGuard.ts   ← intercept writes, enforce readonly/protect
+    settings.ts           ← settings schema and settings tab UI
+    utils/
+      shellEnv.ts         ← shell environment resolution
+      fileTree.ts         ← vault folder tree builder
+      sessionStorage.ts   ← read/write .obsidian/claude/sessions/
+  notes/                  ← design docs and specs
+  .claude/                ← Claude Code project memory (git-tracked)
 ```
 
-## Testing
+---
 
-When making changes to the template initialization workflow, test by:
+## Commit Message Convention
 
-1. Creating a new repository from your modified template
-2. Verifying the workflow runs successfully
-3. Checking that all repository references are updated correctly
-4. Confirming the workflow deletes itself after completion
+Cortex uses [Conventional Commits](https://www.conventionalcommits.org/) — these drive automated versioning via [release-please](https://github.com/googleapis/release-please).
+
+| Prefix | Effect | Use for |
+|--------|--------|---------|
+| `feat:` | bumps MINOR | new user-facing feature |
+| `fix:` | bumps PATCH | bug fix |
+| `feat!:` / `fix!:` | bumps MAJOR | breaking change |
+| `docs:` | no version bump | documentation only |
+| `refactor:` | no version bump | code change, no behavior change |
+| `chore:` | no version bump | maintenance, deps, tooling |
+| `test:` | no version bump | adding or updating tests |
+
+**Examples:**
+```
+feat: add session resume on panel open
+fix: correct binary detection on Windows
+docs: add frontmatter schema to user guide
+chore: update esbuild to 0.21
+feat!: change context file default path to _claude-context.md
+```
+
+---
+
+## Pull Request Process
+
+1. Fork the repo and create a branch from `main`
+2. Make your changes — keep PRs focused on a single concern
+3. Ensure `npm run build` passes with no TypeScript errors
+4. Update documentation (`notes/USER_README.md`, `README.md`) if your change affects user-facing behavior
+5. Submit the PR — describe what changed and why
+
+CHANGELOG is generated automatically by release-please from commit messages; you don't need to edit it manually.
+
+---
 
 ## Questions?
 
-Feel free to open an issue for questions or reach out via:
+Open an issue, or reach out via:
 - [LinkedIn](https://www.linkedin.com/in/scottkirvan/)
-- [Discord](https://discord.gg/TSKHvVFYxB)
-
-Thank you for your contributions!
+- [Discord](https://discord.gg/TSKHvVFYxB) — cptvideo

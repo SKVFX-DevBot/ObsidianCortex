@@ -12,11 +12,15 @@ Persistent cross-session notes for Claude Code. Keep concise.
 - **Repo path:** `d:/1/GitRepos/ScottKirvan/Vaults/sk/07_GitRepos/Cortex`
 - **GitHub:** ScottKirvan/Cortex (release-please + conventional commits)
 
-## Current Status (as of 2026-03-01)
+## Current Status (as of 2026-03-08)
 
-- **Phase:** Pre-development. Specs done. Zero plugin code written yet.
-- **Claude.md:** Written and in place — covers architecture, workflow, build stack, roles
-- **Notes:** All design docs are in `notes/` — these are the source of truth
+- **Phase:** Active development. Scaffold complete, build passes, test vault symlink set up.
+- **Source files in place:** `main.ts`, `src/ClaudeView.ts`, `src/ClaudeProcess.ts`, `src/settings.ts`, stubs for session/context/guard/utils
+- **Blocker in progress:** Claude Code not yet installed natively in Windows — needed for plugin to find the binary
+
+## Known Gotchas
+
+- **Claude Code must be installed natively in Windows (PowerShell), not just in WSL.** The plugin spawns `claude` as a Windows child process — a WSL-only install is invisible to it. Install: `winget install Anthropic.ClaudeCode` or `irm https://claude.ai/install.ps1 | iex`. Verify: `claude --version` works in a plain PowerShell window.
 
 ## Key Architecture Decisions (Locked)
 
@@ -48,15 +52,16 @@ Persistent cross-session notes for Claude Code. Keep concise.
 | `notes/obsidian-claude-plugin-frontmatter-schema.md` | Frontmatter schema |
 | `notes/obsidian-claude-plugin-questions.md` | Open design decisions |
 
-## Implementation Order (When We Start)
+## Implementation Order
 
-1. Scaffold from `obsidian-sample-plugin`
-2. Update manifest.json (id: `cortex`, name: `Cortex`, isDesktopOnly: true)
-3. TypeScript config + `@types/node`
-4. `ClaudeProcess.ts` — binary detection, spawn, stream-json parsing
-5. `ClaudeView.ts` — minimal chat panel (streaming output)
-6. Wire up in `main.ts`, test in throwaway vault
-7. `ContextManager.ts`, `FrontmatterGuard.ts`, session management
+- [x] Scaffold (manifest, package.json, tsconfig, esbuild, main.ts, src/)
+- [x] npm install + npm run build passes
+- [x] Test vault symlink created
+- [ ] Claude Code installed natively in Windows + plugin loads in Obsidian
+- [ ] Verify streaming output works end-to-end in ClaudeView
+- [ ] Session persistence (ClaudeSession.ts + sessionStorage.ts)
+- [ ] Context injection (ContextManager.ts)
+- [ ] Frontmatter enforcement (FrontmatterGuard.ts)
 
 ## Open Design Questions (unresolved)
 

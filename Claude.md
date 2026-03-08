@@ -106,7 +106,10 @@ claude:
 ### Prerequisites (user's machine)
 - Node.js 18+
 - npm
-- Claude Code CLI installed and authenticated
+- Claude Code CLI installed and authenticated **in the native Windows environment (PowerShell), not only in WSL**
+  - The plugin spawns `claude` as a Windows child process — WSL-only installs are invisible to it
+  - Install: `irm https://claude.ai/install.ps1 | iex` (run in PowerShell), or `winget install Anthropic.ClaudeCode`
+  - Verify: `claude --version` must work in a plain PowerShell window
 - Obsidian desktop
 - A throwaway test vault (don't develop against real vault until stable)
 
