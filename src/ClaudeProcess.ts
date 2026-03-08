@@ -84,7 +84,7 @@ export function spawnClaude(opts: SpawnOptions): ChildProcess {
   const env = { ...opts.env };
   delete env['CLAUDECODE'];
 
-  LOG('spawnClaude:', opts.binaryPath, args.slice(0, -1), '— cwd:', opts.vaultRoot);
+  LOG('spawnClaude cwd:', opts.vaultRoot, 'session:', opts.resumeSessionId ?? 'new');
 
   let proc: ChildProcess;
 
@@ -95,7 +95,7 @@ export function spawnClaude(opts: SpawnOptions): ChildProcess {
     // Single-quote the binary path; escape single quotes in each arg/prompt.
     const ps = (s: string) => `'${s.replace(/'/g, "''")}'`;
     const psCmd = `& ${ps(opts.binaryPath)} ${args.map(ps).join(' ')}`;
-    LOG('  powershell command:', psCmd.substring(0, 120));
+    LOG('  powershell spawn');
     proc = spawn('powershell.exe', ['-NonInteractive', '-Command', psCmd], {
       cwd: opts.vaultRoot,
       env,

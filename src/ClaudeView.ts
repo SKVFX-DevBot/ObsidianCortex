@@ -45,9 +45,15 @@ export class ClaudeView extends ItemView {
 
     this.sendBtn.addEventListener('click', () => this.handleSend());
     this.inputEl.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        this.handleSend();
+      const sendOnEnter = this.plugin.settings.sendOnEnter;
+      if (e.key === 'Enter') {
+        if (sendOnEnter && !e.shiftKey) {
+          e.preventDefault();
+          this.handleSend();
+        } else if (!sendOnEnter && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          this.handleSend();
+        }
       }
     });
   }

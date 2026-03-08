@@ -4,11 +4,13 @@ import type CortexPlugin from '../main';
 export interface CortexSettings {
   binaryPath: string;
   contextFilePath: string;
+  sendOnEnter: boolean;
 }
 
 export const DEFAULT_SETTINGS: CortexSettings = {
   binaryPath: '',
   contextFilePath: '_claude-context.md',
+  sendOnEnter: false,
 };
 
 export class CortexSettingsTab extends PluginSettingTab {
@@ -45,6 +47,18 @@ export class CortexSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.contextFilePath)
           .onChange(async (value) => {
             this.plugin.settings.contextFilePath = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Send on Enter')
+      .setDesc('Press Enter to send. When off, use Ctrl+Enter (or Cmd+Enter on Mac).')
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.sendOnEnter)
+          .onChange(async (value) => {
+            this.plugin.settings.sendOnEnter = value;
             await this.plugin.saveSettings();
           })
       );
