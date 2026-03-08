@@ -2,3 +2,13 @@
 node_modules/
 main.js
 _cortex-debug.log
+
+# Obsidian plugin runtime data (machine-specific)
+data.json
+
+# Claude Code local settings (machine-specific, auto-generated)
+.claude/settings.local.json
+
+# Cortex runtime data written when plugin runs from symlinked dev folder
+# In production vaults this lives at .obsidian/plugins/cortex/.claude/sessions/
+.claude/sessions/
