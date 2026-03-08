@@ -3,6 +3,7 @@ import { ClaudeView, VIEW_TYPE_CLAUDE } from './src/ClaudeView';
 import { CortexSettings, DEFAULT_SETTINGS, CortexSettingsTab } from './src/settings';
 import { findClaudeBinary } from './src/ClaudeProcess';
 import { resolveShellEnv } from './src/utils/shellEnv';
+import { initLogger, log } from './src/utils/logger';
 
 export default class CortexPlugin extends Plugin {
   settings: CortexSettings;
@@ -11,6 +12,10 @@ export default class CortexPlugin extends Plugin {
 
   async onload() {
     await this.loadSettings();
+
+    const vaultRoot = (this.app.vault.adapter as any).basePath;
+    initLogger(vaultRoot);
+    log('Cortex loading — vault root:', vaultRoot);
 
     this.shellEnv = resolveShellEnv();
     this.claudeBinaryPath = findClaudeBinary(this.settings.binaryPath);

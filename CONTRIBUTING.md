@@ -32,7 +32,9 @@ Use the [feature request template](https://github.com/ScottKirvan/Cortex/issues/
 
 - Node.js 18+
 - npm
-- Claude Code CLI installed natively (not just in WSL on Windows)
+- Claude Code CLI installed **and logged in** natively in PowerShell (not just in WSL on Windows)
+  - Install: `winget install Anthropic.ClaudeCode`
+  - Log in: `claude login` (opens browser for OAuth — required even if logged in via WSL)
 - Obsidian desktop
 - A throwaway test vault (do not develop against your real vault)
 

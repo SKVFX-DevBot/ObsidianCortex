@@ -20,7 +20,9 @@ Persistent cross-session notes for Claude Code. Keep concise.
 
 ## Known Gotchas
 
-- **Claude Code must be installed natively in Windows (PowerShell), not just in WSL.** The plugin spawns `claude` as a Windows child process — a WSL-only install is invisible to it. Install: `winget install Anthropic.ClaudeCode` or `irm https://claude.ai/install.ps1 | iex`. Verify: `claude --version` works in a plain PowerShell window.
+- **Claude Code must be installed AND logged in natively in Windows (PowerShell), not just in WSL.** Install: `winget install Anthropic.ClaudeCode`. Then: `claude login`. WSL auth does not carry over.
+- **Windows/Electron spawn fix (SOLVED):** `child_process.spawn` with `stdio:pipe` silently swallows stdout when called from Obsidian/Electron on Windows (both `shell:true` via cmd.exe and `shell:false` fail). Fix: spawn via `powershell.exe -NonInteractive -Command "& 'claude.exe' ..."` AND call `proc.stdin?.end()` immediately after spawn. Both required. See `src/ClaudeProcess.ts`.
+- **`--verbose` required:** `--output-format stream-json` requires `--verbose` when combined with `--print`, otherwise claude exits with an error on stderr.
 
 ## Key Architecture Decisions (Locked)
 

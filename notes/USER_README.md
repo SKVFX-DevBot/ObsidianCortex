@@ -32,7 +32,8 @@ Cortex is an Obsidian plugin that puts a Claude Code agent inside your vault. Th
     npm install -g @anthropic-ai/claude-code
     ```
   - Verify the install: `claude --version` should return a version number in your terminal
-  - Authenticate: `claude login` (one-time setup)
+  - **Log in:** `claude login` — this opens a browser for OAuth authentication (one-time per environment)
+  - Having Claude Code installed in WSL does **not** count — you must install and log in natively in PowerShell
 - A **Claude Pro or Max subscription** — Cortex rides your existing subscription, no separate API key needed
 
 ---

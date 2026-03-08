@@ -3,9 +3,7 @@ import { join } from 'path';
 import * as os from 'os';
 import { execSync } from 'child_process';
 import { spawn, ChildProcess } from 'child_process';
-
-const LOG = (...args: unknown[]) => console.log('[Cortex]', ...args);
-const WARN = (...args: unknown[]) => console.warn('[Cortex]', ...args);
+import { log as LOG, warn as WARN } from './utils/logger';
 
 // ---------------------------------------------------------------------------
 // Binary detection
@@ -71,6 +69,7 @@ export interface SpawnOptions {
 export function spawnClaude(opts: SpawnOptions): ChildProcess {
   const args = [
     '--output-format', 'stream-json',
+    '--verbose',
     '--print',
     '--dangerously-skip-permissions',
   ];
@@ -81,13 +80,36 @@ export function spawnClaude(opts: SpawnOptions): ChildProcess {
 
   args.push(opts.prompt);
 
+  // Strip CLAUDECODE so claude doesn't refuse to launch inside another session.
+  const env = { ...opts.env };
+  delete env['CLAUDECODE'];
+
   LOG('spawnClaude:', opts.binaryPath, args.slice(0, -1), '— cwd:', opts.vaultRoot);
 
-  const proc = spawn(opts.binaryPath, args, {
-    cwd: opts.vaultRoot,
-    env: opts.env,
-    stdio: ['pipe', 'pipe', 'pipe'],
-  });
+  let proc: ChildProcess;
+
+  if (process.platform === 'win32') {
+    // On Windows, Electron's child_process piping doesn't work correctly with
+    // cmd.exe (shell:true) or direct spawn (shell:false) — stdout is swallowed.
+    // Spawning via powershell.exe -NonInteractive works reliably.
+    // Single-quote the binary path; escape single quotes in each arg/prompt.
+    const ps = (s: string) => `'${s.replace(/'/g, "''")}'`;
+    const psCmd = `& ${ps(opts.binaryPath)} ${args.map(ps).join(' ')}`;
+    LOG('  powershell command:', psCmd.substring(0, 120));
+    proc = spawn('powershell.exe', ['-NonInteractive', '-Command', psCmd], {
+      cwd: opts.vaultRoot,
+      env,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      shell: false,
+    });
+  } else {
+    proc = spawn(opts.binaryPath, args, {
+      cwd: opts.vaultRoot,
+      env,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      shell: false,
+    });
+  }
 
   LOG('  pid:', proc.pid);
   return proc;
@@ -148,18 +170,24 @@ function handleMessage(
     case 'system':
       if (msg.session_id) setSessionId(msg.session_id as string);
       break;
-    case 'content_block_delta': {
-      const delta = msg.delta as Record<string, unknown> | undefined;
-      if (delta?.type === 'text_delta') {
-        cb.onText((delta.text as string) ?? '');
+    case 'assistant': {
+      // Full message format: {type:'assistant', message:{content:[{type:'text',text:'...'}]}}
+      const message = msg.message as Record<string, unknown> | undefined;
+      const content = message?.content as Array<Record<string, unknown>> | undefined;
+      if (content) {
+        for (const block of content) {
+          if (block.type === 'text') {
+            cb.onText((block.text as string) ?? '');
+          } else if (block.type === 'tool_use') {
+            cb.onToolCall(block.name as string, block.input);
+          }
+        }
       }
       break;
     }
-    case 'tool_use':
-      cb.onToolCall(msg.name as string, msg.input);
-      break;
-    case 'message_stop':
-      // onDone is called via process 'close' event
+    case 'result':
+      // Final result message — session_id is also here
+      if (msg.session_id) setSessionId(msg.session_id as string);
       break;
   }
 }

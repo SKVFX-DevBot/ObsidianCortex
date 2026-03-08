@@ -1,6 +1,7 @@
 import { ItemView, WorkspaceLeaf, MarkdownRenderer } from 'obsidian';
 import type CortexPlugin from '../main';
 import { spawnClaude, parseStreamOutput } from './ClaudeProcess';
+import { log } from './utils/logger';
 
 export const VIEW_TYPE_CLAUDE = 'cortex-chat';
 
@@ -62,6 +63,8 @@ export class ClaudeView extends ItemView {
     }
 
     const unlock = () => { this.sendBtn.disabled = false; };
+    const vaultRoot = (this.app.vault.adapter as any).basePath;
+    log('handleSend — vaultRoot:', vaultRoot, '— prompt:', prompt.substring(0, 80));
 
     this.inputEl.value = '';
     this.sendBtn.disabled = true;
@@ -82,6 +85,9 @@ export class ClaudeView extends ItemView {
       unlock();
       return;
     }
+
+    // Close stdin — claude waits for it before processing
+    proc.stdin?.end();
 
     let accumulated = '';
 

@@ -1,3 +1,4 @@
 .obsidian/*
 node_modules/
 main.js
+_cortex-debug.log
