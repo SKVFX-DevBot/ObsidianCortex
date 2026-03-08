@@ -1,5 +1,6 @@
 // Session load/save/resume logic
-// Sessions are stored in .obsidian/claude/sessions/<id>.json
+// Sessions are stored at: <vault>/.obsidian/plugins/cortex/.claude/sessions/<id>.json
+// This keeps all Cortex data within the plugin's own folder, travels with the vault.
 
 export interface Session {
   id: string;

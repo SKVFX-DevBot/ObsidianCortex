@@ -68,6 +68,7 @@
   border: 1px solid var(--background-modifier-border);
   align-self: flex-end;
   max-width: 85%;
+  white-space: pre-wrap;  /* preserve newlines from Shift+Enter */
 }
 
 .cortex-assistant {
