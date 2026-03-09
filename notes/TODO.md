@@ -1,9 +1,9 @@
 TODO
 ----
-- [ ] Frontmatter enforcement (FrontmatterGuard.ts) — readonly/protect/context:never
-- [ ] bug: when I use shift-enter to enter multiline messages, the newlines are stripped out when the message is redisplayed in the chat panel.
 - [ ] session history: add the ability to delete old sessions from the session list modal
 - [ ] session history button: let's remove the button and a search/filter box to the session list modal.
+- [ ] Frontmatter enforcement (FrontmatterGuard.ts) — readonly/protect/context:never
+- [ ] we have "dangerously-skip-permissions" set - I think this was set when trying to solve a permissions issue that turned out to be a red herring. Let's remove it and see if we run into any issues.
 
 In Progress
 -----------
@@ -34,6 +34,7 @@ Done ✓
 - [x] Show thinking indicator while waiting for response (spinner or "thinking..." text) ✅ 2026-03-08
 - [x] "send on enter" setting - make that default to true ✅ 2026-03-08
 - [x] add a thin box around the right-aligned user input text in the panel. ✅ 2026-03-08
+- [x] bug: when I use shift-enter to enter multiline messages, the newlines are stripped out when the message is redisplayed in the chat panel.
 
 Not Gonna Do
 ------------

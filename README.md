@@ -54,23 +54,25 @@ Cortex is an Obsidian plugin that puts a Claude Code agent inside your vault. Yo
 
 - **Chat panel** — a persistent side panel for back-and-forth conversation with Claude
 - **Full vault access** — Claude can read, write, create, and move notes; the vault root is Claude's working directory
+- **Session persistence** — resume previous conversations; sessions stored in `.obsidian/claude/sessions/`
+- **No API key** — uses your Claude Pro/Max subscription via the `claude` CLI
+
+## Roadmap/TBD
 - **Context system** — inject a context file, pin specific notes, or highlight a selection before asking Claude a question
 - **Per-note frontmatter controls** — mark notes as `readonly`, permanently `context: always` (pinned), or `context: never` (excluded)
-- **Session persistence** — resume previous conversations; sessions stored in `.obsidian/claude/sessions/` (gitignored)
-- **No API key** — uses your Claude Pro/Max subscription via the `claude` CLI
 
 ## Requirements
 
 - Obsidian desktop (Windows, Mac, or Linux — **desktop only**, no mobile)
-- [Claude Code CLI](https://claude.ai/code) installed and authenticated
-  - **Windows users:** must be installed natively in PowerShell, not just in WSL
-  - Verify: `claude --version` works in a terminal
+- [Claude Code CLI](https://claude.ai/code) installed and authenticated (included in Claude Pro/Max subscriptions)
+  - **Windows users:** Claude Code must be installed natively in **PowerShell**
+  - Verify: Type `claude --version` in PowerShell
 
 ## Installation
 
 Cortex is not yet in the Obsidian community plugin browser. To install manually:
 
-1. Download the latest release from [Releases](https://github.com/ScottKirvan/Cortex/releases)
+1. Clone or Download the latest release from [Releases](https://github.com/ScottKirvan/Cortex/releases)
 2. Extract into `<your-vault>/.obsidian/plugins/cortex/`
 3. In Obsidian: Settings → Community Plugins → enable **Cortex**
 

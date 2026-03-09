@@ -88,7 +88,7 @@ npm run build
 npm run dev
 ```
 
-Watch mode rebuilds on every save. With Hot Reload installed in the test vault, the plugin reloads automatically. The iteration loop becomes: save file → plugin reloads → test.
+Watch mode rebuilds on every save. With [Hot Reload](https://github.com/pjeby/hot-reload) installed in the test vault, the plugin reloads automatically. The iteration loop becomes: save file → plugin reloads → test.
 
 Build output is `main.js` in the project root, which gets picked up by the symlink.
 

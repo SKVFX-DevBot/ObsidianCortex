@@ -66,7 +66,7 @@ After enabling the plugin:
 
 ## Using the Chat Panel
 
-The chat panel opens as a sidebar. Type your message and press **Enter** to send, or click **Send**. Use **Shift+Enter** to insert a newline without sending. The "Send on Enter" behaviour can be toggled in **Settings → Cortex**.
+The chat panel opens as a sidebar. Type your message and press **Enter** to send, or click **Send**. Use **Shift+Enter** to insert a newline without sending. The "Send on Enter" behavior can be toggled in **Settings → Cortex**.
 
 Claude has access to your full vault — it can read, write, create, move, and organize notes. The vault root is Claude's working directory.
 
@@ -202,7 +202,7 @@ Open **Settings → Cortex** to configure:
 ## Known Limitations
 
 - **Desktop only** — Obsidian mobile is not supported (Node.js APIs are unavailable on mobile)
-- **Windows:** Claude Code must be installed natively in PowerShell, not just in WSL
+- **Windows:** Claude Code must be installed natively in PowerShell, not just the desktop or web app versions.
 - **One active session at a time** — concurrent sessions are not supported in v1
 - Claude operates with full vault access — use `readonly` frontmatter on notes you don't want modified
 - Sessions are stored in `.obsidian/claude/sessions/` which is typically gitignored; sessions do not sync across devices
