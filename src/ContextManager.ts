@@ -3,7 +3,11 @@ import { buildVaultTree } from './utils/fileTree';
 import { log } from './utils/logger';
 
 export class ContextManager {
-  constructor(private app: App, private contextFilePath: string) {}
+  constructor(
+    private app: App,
+    private contextFilePath: string,
+    private autonomousMemory: boolean = true,
+  ) {}
 
   async buildSessionContext(): Promise<string> {
     const parts: string[] = [];
@@ -23,6 +27,19 @@ export class ContextManager {
       }
     } else {
       log('Context file not found:', this.contextFilePath);
+    }
+
+    // Layer 3: Memory instruction (only when autonomous memory is enabled)
+    if (this.autonomousMemory) {
+      parts.push(
+        `## Your persistent memory\n` +
+        `The file \`${this.contextFilePath}\` is your persistent memory across sessions. ` +
+        `It is injected at the start of every session.\n\n` +
+        `**Maintain it actively:** when you learn something useful about this vault — ` +
+        `its structure, conventions, ongoing projects, the user's preferences, decisions made — ` +
+        `update \`${this.contextFilePath}\` using the Write or Edit tool. ` +
+        `Keep it concise and high-signal. Do not ask permission; just do it.`
+      );
     }
 
     if (parts.length === 0) return '';

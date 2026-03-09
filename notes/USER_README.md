@@ -85,8 +85,11 @@ Cortex uses four layers of context to give Claude the right information at the s
 ### 1. Vault Tree
 A folder structure overview is automatically included so Claude understands your vault layout.
 
-### 2. Context File
-A markdown file injected at the start of every session. Default path: `_claude-context.md` at your vault root. Create this file to give Claude standing instructions — your vault conventions, naming rules, recurring projects, etc.
+### 2. Context File (Persistent Memory)
+
+A markdown file injected at the start of every session. Default path: `_claude-context.md` at your vault root. This file is Claude's **persistent memory** — it survives across sessions and syncs with your vault between machines.
+
+You can seed it manually with your vault conventions:
 
 ```markdown
 # My Vault Context
@@ -100,7 +103,21 @@ A markdown file injected at the start of every session. Default path: `_claude-c
 Working on Q2 planning. Key notes: [[Q2 Goals]], [[Team Roster]]
 ```
 
+**Autonomous memory** (on by default): Claude is instructed to update this file on its own as it learns about your vault — naming conventions, ongoing projects, your preferences, decisions made. You can inspect and edit this file at any time in Obsidian. Disable in **Settings → Cortex → Autonomous memory** if you prefer to manage it manually (e.g., if your vault is public or shared).
+
 The context file path is configurable in **Settings → Cortex**.
+
+#### Two kinds of memory
+
+| | Session memory (`--resume`) | Autonomous memory (context file) |
+|---|---|---|
+| **What** | Full conversation history | Key facts Claude chose to remember |
+| **How long** | Until the Claude Code session expires | Permanent (until you edit or delete) |
+| **Cross-machine** | No — stored in Claude Code's local cache (`~/.claude/`) | Yes — travels with vault sync |
+| **Size** | 10KB–several MB per session (plain JSON lines) | As small as you keep it |
+| **Inspectable** | No | Yes — it's just a markdown file |
+
+> **Cross-machine note:** Session files live at `~/.claude/projects/<vault-path>/` keyed to the vault's absolute path. Resuming a session from another machine requires the vault to be at the same absolute path AND the session file to be present on that machine. This is generally not practical. Use the context file for cross-machine continuity instead.
 
 ### 3. Pinned Notes
 Individual notes can be permanently pinned to every session using frontmatter (see below).

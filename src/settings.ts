@@ -5,12 +5,16 @@ export interface CortexSettings {
   binaryPath: string;
   contextFilePath: string;
   sendOnEnter: boolean;
+  resumeLastSession: boolean;
+  autonomousMemory: boolean;
 }
 
 export const DEFAULT_SETTINGS: CortexSettings = {
   binaryPath: '',
   contextFilePath: '_claude-context.md',
   sendOnEnter: true,
+  resumeLastSession: true,
+  autonomousMemory: true,
 };
 
 export class CortexSettingsTab extends PluginSettingTab {
@@ -59,6 +63,30 @@ export class CortexSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.sendOnEnter)
           .onChange(async (value) => {
             this.plugin.settings.sendOnEnter = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Resume last session on startup')
+      .setDesc('Automatically resume the most recent session when the panel opens.')
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.resumeLastSession)
+          .onChange(async (value) => {
+            this.plugin.settings.resumeLastSession = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Autonomous memory')
+      .setDesc(`Claude will autonomously update the context file (${this.plugin.settings.contextFilePath}) as it learns about your vault. Disable if you prefer to manage the context file manually, or if your vault is shared/public.`)
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.autonomousMemory)
+          .onChange(async (value) => {
+            this.plugin.settings.autonomousMemory = value;
             await this.plugin.saveSettings();
           })
       );
