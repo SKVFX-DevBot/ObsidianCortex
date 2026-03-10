@@ -93,7 +93,14 @@ export function spawnClaude(opts: SpawnOptions): ChildProcess {
     // cmd.exe (shell:true) or direct spawn (shell:false) — stdout is swallowed.
     // Spawning via powershell.exe -NonInteractive works reliably.
     // Single-quote the binary path; escape single quotes in each arg/prompt.
-    const ps = (s: string) => `'${s.replace(/'/g, "''")}'`;
+    // Normalize Unicode smart quotes first — PowerShell treats \u2018/\u2019 as
+    // string delimiters, which breaks the command when prompts contain contractions.
+    const ps = (s: string) => {
+      const normalized = s
+        .replace(/[\u2018\u2019]/g, "'")   // curly single quotes → straight
+        .replace(/[\u201C\u201D]/g, '"');   // curly double quotes → straight
+      return `'${normalized.replace(/'/g, "''")}'`;
+    };
     const psCmd = `& ${ps(opts.binaryPath)} ${args.map(ps).join(' ')}`;
     LOG('  powershell spawn');
     proc = spawn('powershell.exe', ['-NonInteractive', '-Command', psCmd], {
