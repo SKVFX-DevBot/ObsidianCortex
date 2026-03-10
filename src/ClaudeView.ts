@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, MarkdownRenderer, Modal, App, Notice } from 'obsidian';
+import { ItemView, WorkspaceLeaf, MarkdownRenderer, Notice } from 'obsidian';
 import type CortexPlugin from '../main';
 import { spawnClaude, parseStreamOutput } from './ClaudeProcess';
 import { ContextManager } from './ContextManager';
@@ -10,182 +10,10 @@ import {
   titleFromPrompt,
   canResumeLocally,
   loadSessionMessages,
-  deleteSession,
 } from './utils/sessionStorage';
+import { SessionListModal } from './modals/SessionListModal';
 
 export const VIEW_TYPE_CLAUDE = 'cortex-chat';
-
-// ---------------------------------------------------------------------------
-// Session history modal
-// ---------------------------------------------------------------------------
-
-class SessionListModal extends Modal {
-  sessions: StoredSession[];
-  filteredSessions: StoredSession[];
-  vaultRoot: string;
-  onSelect: (session: StoredSession) => void;
-  onNewSession: () => void;
-  listContainer: HTMLElement | null = null;
-
-  constructor(app: App, vaultRoot: string, sessions: StoredSession[], onSelect: (s: StoredSession) => void, onNewSession: () => void) {
-    super(app);
-    this.vaultRoot = vaultRoot;
-    this.sessions = sessions;
-    this.filteredSessions = sessions;
-    this.onSelect = onSelect;
-    this.onNewSession = onNewSession;
-  }
-
-  onOpen() {
-    const { contentEl } = this;
-    contentEl.createEl('h2', { text: 'Session history' });
-
-    // Top bar with search and new session button
-    const topBar = contentEl.createDiv({ cls: 'cortex-modal-topbar' });
-
-    // Search/filter input
-    const filterInput = topBar.createEl('input', {
-      cls: 'cortex-session-filter',
-      attr: {
-        type: 'text',
-        placeholder: 'Search sessions…',
-      },
-    });
-    filterInput.addEventListener('input', (e) => {
-      const query = (e.target as HTMLInputElement).value.toLowerCase();
-      this.filteredSessions = this.sessions.filter(s =>
-        s.title.toLowerCase().includes(query)
-      );
-      this.rerenderList();
-    });
-
-    // New session button
-    const newSessionBtn = topBar.createEl('button', {
-      text: '+ New',
-      cls: 'cortex-new-session-btn',
-    });
-    newSessionBtn.addEventListener('click', () => this.createNewSession());
-
-    // List container (will be re-rendered on filter)
-    this.listContainer = contentEl.createDiv({ cls: 'cortex-session-list-container' });
-    this.rerenderList();
-  }
-
-  private createNewSession() {
-    this.onNewSession();
-    this.close();
-  }
-
-  private rerenderList() {
-    if (!this.listContainer) return;
-    this.listContainer.empty();
-
-    if (this.filteredSessions.length === 0) {
-      this.listContainer.createEl('p', {
-        text: this.sessions.length === 0 ? 'No saved sessions yet.' : 'No sessions match your search.',
-        cls: 'cortex-modal-empty'
-      });
-      return;
-    }
-
-    const list = this.listContainer.createEl('ul', { cls: 'cortex-session-list' });
-    for (const session of this.filteredSessions) {
-      this.renderSessionItem(list, session);
-    }
-  }
-
-  private renderSessionItem(list: HTMLElement, session: StoredSession) {
-    const isNew = !session.claudeSessionId;
-    const resumable = !isNew && canResumeLocally(session.claudeSessionId);
-    const item = list.createEl('li', {
-      cls: isNew
-        ? 'cortex-session-item cortex-session-new'
-        : resumable
-          ? 'cortex-session-item'
-          : 'cortex-session-item cortex-session-remote',
-    });
-    const titleEl = item.createEl('span', { text: session.title, cls: 'cortex-session-title' });
-    item.createEl('span', {
-      text: new Date(session.updatedAt).toLocaleString(),
-      cls: 'cortex-session-date',
-    });
-    if (isNew) {
-      item.createEl('span', { text: 'new', cls: 'cortex-session-new-badge' });
-    } else if (!resumable) {
-      item.createEl('span', { text: 'remote', cls: 'cortex-session-remote-badge' });
-    }
-
-    // Action buttons container
-    const actionsDiv = item.createEl('div', { cls: 'cortex-session-actions' });
-
-    const renameBtn = actionsDiv.createEl('button', { text: '✏', cls: 'cortex-rename-btn' });
-    renameBtn.title = 'Rename session';
-
-    const deleteBtn = actionsDiv.createEl('button', { text: '🗑', cls: 'cortex-delete-btn' });
-    deleteBtn.title = 'Delete session';
-
-    // Load session on row click (but not action buttons)
-    item.addEventListener('click', (e) => {
-      if (e.target === renameBtn || e.target === deleteBtn || (e.target as HTMLElement).closest('.cortex-session-actions')) {
-        return;
-      }
-      this.onSelect(session);
-      this.close();
-    });
-
-    // Delete button handler
-    deleteBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (confirm(`Delete session "${session.title}"? This cannot be undone.`)) {
-        deleteSession(this.vaultRoot, session.id);
-        this.sessions = this.sessions.filter(s => s.id !== session.id);
-        this.filteredSessions = this.filteredSessions.filter(s => s.id !== session.id);
-        this.rerenderList();
-      }
-    });
-
-    // Inline rename
-    renameBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const input = item.createEl('input', {
-        cls: 'cortex-rename-input',
-        attr: { value: session.title, type: 'text' },
-      });
-      titleEl.hide();
-      renameBtn.hide();
-      deleteBtn.hide();
-      input.focus();
-      input.select();
-
-      const commit = () => {
-        const newTitle = input.value.trim();
-        if (newTitle && newTitle !== session.title) {
-          session.title = newTitle;
-          saveSession(this.vaultRoot, session);
-          titleEl.setText(newTitle);
-        }
-        input.remove();
-        titleEl.show();
-        renameBtn.show();
-        deleteBtn.show();
-      };
-
-      input.addEventListener('keydown', (ke) => {
-        if (ke.key === 'Enter') { ke.preventDefault(); commit(); }
-        if (ke.key === 'Escape') { input.remove(); titleEl.show(); renameBtn.show(); deleteBtn.show(); }
-      });
-      input.addEventListener('blur', commit);
-    });
-  }
-
-  onClose() {
-    this.contentEl.empty();
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Chat view
-// ---------------------------------------------------------------------------
 
 export class ClaudeView extends ItemView {
   plugin: CortexPlugin;
@@ -196,7 +24,7 @@ export class ClaudeView extends ItemView {
   private currentSessionId: string | undefined;
   private currentSessionTitle: string | undefined;
   private currentSessionCreatedAt: string | undefined;
-  private placeholderSessionId: string | undefined; // Track placeholder session ID for updating
+  private placeholderSessionId: string | undefined;
 
   constructor(leaf: WorkspaceLeaf, plugin: CortexPlugin) {
     super(leaf);
@@ -212,7 +40,6 @@ export class ClaudeView extends ItemView {
     root.empty();
     root.addClass('cortex-view');
 
-    // Session toolbar
     const toolbar = root.createDiv({ cls: 'cortex-toolbar' });
     this.sessionStatusEl = toolbar.createSpan({ cls: 'cortex-session-status', text: 'New session' });
     this.sessionStatusEl.addEventListener('click', () => this.showSessionHistory());
@@ -237,7 +64,6 @@ export class ClaudeView extends ItemView {
       }
     });
 
-    // Auto-resume last session if setting is on
     if (this.plugin.settings.resumeLastSession) {
       const vaultRoot = (this.app.vault.adapter as any).basePath;
       const sessions = loadAllSessions(vaultRoot);
@@ -254,18 +80,17 @@ export class ClaudeView extends ItemView {
     const now = new Date().toISOString();
     const sessionId = now.replace(/[:.]/g, '-');
 
-    // Create and save a placeholder session so it appears in the session manager
     const newSession: StoredSession = {
       id: sessionId,
       title: 'Untitled session',
       createdAt: now,
       updatedAt: now,
-      claudeSessionId: '', // Will be populated when first message is sent
+      claudeSessionId: '',
     };
 
     saveSession(vaultRoot, newSession);
-    this.placeholderSessionId = sessionId; // Store for updating later
-    this.currentSessionId = undefined; // Keep undefined until first message gets real ID
+    this.placeholderSessionId = sessionId;
+    this.currentSessionId = undefined;
     this.currentSessionTitle = 'Untitled session';
     this.currentSessionCreatedAt = now;
     this.messagesEl.empty();
@@ -277,7 +102,7 @@ export class ClaudeView extends ItemView {
     const vaultRoot = (this.app.vault.adapter as any).basePath;
     const sessions = loadAllSessions(vaultRoot);
     new SessionListModal(this.app, vaultRoot, sessions, (session) => {
-      this.loadSession(session);  // fire-and-forget ok here
+      this.loadSession(session);
     }, () => {
       this.startNewSession();
     }).open();
@@ -305,11 +130,11 @@ export class ClaudeView extends ItemView {
     messages.forEach((msgEl) => {
       const role = msgEl.classList.contains('cortex-user') ? 'User' :
         msgEl.classList.contains('cortex-assistant') ? 'Assistant' : 'System';
-      const content = msgEl.textContent || '';
+      // Use stored raw markdown for assistant messages; textContent for others
+      const content = (msgEl as HTMLElement).dataset.markdown ?? msgEl.textContent ?? '';
       markdown += `## ${role}\n\n${content}\n\n`;
     });
 
-    // Copy to clipboard
     navigator.clipboard.writeText(markdown).then(() => {
       new Notice('Conversation exported to clipboard');
     }).catch(() => {
@@ -326,8 +151,9 @@ export class ClaudeView extends ItemView {
       return;
     }
 
-    const lastResponse = messages[messages.length - 1];
-    const content = lastResponse.textContent || '';
+    const lastResponse = messages[messages.length - 1] as HTMLElement;
+    // Use stored raw markdown; fall back to textContent
+    const content = lastResponse.dataset.markdown ?? lastResponse.textContent ?? '';
 
     navigator.clipboard.writeText(content).then(() => {
       new Notice('Last response copied to clipboard');
@@ -339,8 +165,8 @@ export class ClaudeView extends ItemView {
   }
 
   private async loadSession(session: StoredSession) {
-    this.placeholderSessionId = undefined; // Clear placeholder when loading a session
-    this.currentSessionId = session.claudeSessionId || undefined; // Treat empty string as undefined
+    this.placeholderSessionId = undefined;
+    this.currentSessionId = session.claudeSessionId || undefined;
     this.currentSessionTitle = session.title;
     this.currentSessionCreatedAt = session.createdAt;
     this.messagesEl.empty();
@@ -349,7 +175,6 @@ export class ClaudeView extends ItemView {
     const isNew = !session.claudeSessionId;
     const resumable = !isNew && canResumeLocally(session.claudeSessionId);
 
-    // If this is a placeholder session (empty claudeSessionId), set up placeholder tracking
     if (isNew) {
       this.placeholderSessionId = session.id;
     }
@@ -362,10 +187,10 @@ export class ClaudeView extends ItemView {
             this.appendMessage('user', msg.content);
           } else {
             const el = this.appendMessage('assistant', '');
+            el.dataset.markdown = msg.content;
             await MarkdownRenderer.render(this.app, msg.content, el, '', this);
           }
         }
-        // Divider between history and new messages
         const divider = this.messagesEl.createDiv({ cls: 'cortex-history-divider' });
         divider.setText('─── resuming here ───');
         divider.scrollIntoView({ behavior: 'instant' });
@@ -415,7 +240,6 @@ export class ClaudeView extends ItemView {
     const assistantEl = this.appendMessage('assistant', '');
     assistantEl.addClass('cortex-thinking');
 
-    // On the first message of a new session, prepend vault context
     let finalPrompt = prompt;
     if (isNewSession) {
       const ctx = new ContextManager(
@@ -473,7 +297,6 @@ export class ClaudeView extends ItemView {
           const now = new Date().toISOString();
 
           if (this.placeholderSessionId) {
-            // Update the placeholder session with the real claudeSessionId
             this.currentSessionId = sessionId;
             saveSession(vaultRoot, {
               id: this.placeholderSessionId,
@@ -482,10 +305,9 @@ export class ClaudeView extends ItemView {
               updatedAt: now,
               claudeSessionId: sessionId,
             });
-            this.placeholderSessionId = undefined; // Reset for next session
+            this.placeholderSessionId = undefined;
             log('Placeholder session updated:', this.placeholderSessionId, '→', sessionId);
           } else if (isNewSession && firstPrompt) {
-            // First response from a "New" in panel without placeholder — create the session record
             this.currentSessionId = sessionId;
             this.currentSessionTitle = titleFromPrompt(firstPrompt);
             this.currentSessionCreatedAt = now;
@@ -498,7 +320,6 @@ export class ClaudeView extends ItemView {
             });
             log('Session saved:', sessionId, this.currentSessionTitle);
           } else if (this.currentSessionId) {
-            // Subsequent messages — update the timestamp
             saveSession(vaultRoot, {
               id: this.currentSessionId,
               title: this.currentSessionTitle ?? this.currentSessionId.substring(0, 8),
@@ -514,6 +335,7 @@ export class ClaudeView extends ItemView {
         if (!accumulated) {
           assistantEl.setText('(no response)');
         } else {
+          assistantEl.dataset.markdown = accumulated;
           assistantEl.empty();
           MarkdownRenderer.render(this.app, accumulated, assistantEl, '', this);
         }
