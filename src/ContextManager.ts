@@ -7,14 +7,15 @@ export class ContextManager {
     private app: App,
     private contextFilePath: string,
     private autonomousMemory: boolean = true,
+    private vaultTreeDepth: number = 3,
   ) { }
 
   async buildSessionContext(): Promise<string> {
     const parts: string[] = [];
     const layerBreakdown: Record<string, { text: string; chars: number; tokens: number }> = {};
 
-    // Layer 1: Vault tree
-    const tree = buildVaultTree(this.app.vault);
+    // Layer 1: Vault tree (folder/file names only — no content)
+    const tree = buildVaultTree(this.app.vault, this.vaultTreeDepth);
     if (tree) {
       const treeBlock = `## Vault structure\n\`\`\`\n${tree}\n\`\`\``;
       parts.push(treeBlock);

@@ -246,6 +246,7 @@ export class ClaudeView extends ItemView {
         this.app,
         this.plugin.settings.contextFilePath,
         this.plugin.settings.autonomousMemory,
+        this.plugin.settings.vaultTreeDepth,
       );
       const context = await ctx.buildSessionContext();
       finalPrompt = ctx.injectContext(context, prompt);

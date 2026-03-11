@@ -54,12 +54,9 @@ Cortex is an Obsidian plugin that puts a Claude Code agent inside your vault. Yo
 
 - **Chat panel** — a persistent side panel for back-and-forth conversation with Claude
 - **Full vault access** — Claude can read, write, create, and move notes; the vault root is Claude's working directory
-- **Session persistence** — resume previous conversations; sessions stored in `.obsidian/claude/sessions/`
+- **Session persistence** — resume previous conversations; sessions stored in `.obsidian/plugins/cortex/.claude/sessions/`
+- **Context system** — vault folder/file tree, persistent context file, and autonomous memory instruction injected at session start
 - **No API key** — uses your Claude Pro/Max subscription via the `claude` CLI
-
-## Roadmap/TBD
-- **Context system** — inject a context file, pin specific notes, or highlight a selection before asking Claude a question
-- **Per-note frontmatter controls** — mark notes as `readonly`, permanently `context: always` (pinned), or `context: never` (excluded)
 
 ## Requirements
 
@@ -84,27 +81,32 @@ See the [User Guide](notes/USER_README.md) for full setup and configuration deta
 2. Type a message and press **Enter** (or click Send). Use Shift+Enter for a newline.
 3. Claude has access to your full vault — ask it to summarize a note, find related ideas, or draft new content
 
-See the [User Guide](notes/USER_README.md) for context files, frontmatter controls, and session management.
+See the [User Guide](notes/USER_README.md) for context files, session management, and settings.
 
 ## Project Layout
 
 ```
 Cortex/
-  main.ts                 ← plugin entry point
-  manifest.json           ← plugin metadata
+  main.ts                   ← plugin entry point
+  manifest.json             ← plugin metadata
   src/
-    ClaudeView.ts         ← chat panel UI
-    ClaudeSession.ts      ← session persistence
-    ClaudeProcess.ts      ← binary detection, spawn, stream parsing
-    ContextManager.ts     ← context file and pinned note injection
-    FrontmatterGuard.ts   ← per-note access controls
-    settings.ts           ← settings schema and UI
+    ClaudeView.ts           ← chat panel UI and session state
+    ClaudeProcess.ts        ← binary detection, spawn, stream-json parsing
+    ContextManager.ts       ← vault tree + context file + memory instruction
+    settings.ts             ← settings schema and UI
+    modals/
+      SessionListModal.ts   ← session history modal
     utils/
-      shellEnv.ts         ← shell environment resolution
-      fileTree.ts         ← vault tree builder
-      sessionStorage.ts   ← session read/write
-  notes/                  ← design docs, TODO, user guide
-  .github/                ← CI, release-please, issue templates
+      shellEnv.ts           ← shell environment resolution
+      fileTree.ts           ← vault folder/file tree builder
+      sessionStorage.ts     ← session read/write
+      logger.ts             ← file + console logging
+  test/
+    unit.test.ts            ← unit tests (npm test)
+    stdin-quote-test.mjs    ← end-to-end stdin/quote test (calls Claude)
+    spawn-test.mjs          ← standalone spawn smoke test
+  notes/                    ← design docs, changelog, user guide
+  .github/                  ← CI, release-please, issue templates
 ```
 
 ## Contributing
@@ -119,4 +121,3 @@ MIT — see [LICENSE.md](LICENSE.md)
 
 Project Link: [Cortex](https://github.com/ScottKirvan/Cortex)
 [CHANGELOG](notes/CHANGELOG.md) · [TODO](notes/TODO.md) · [User Guide](notes/USER_README.md)
-

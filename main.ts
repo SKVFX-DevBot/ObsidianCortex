@@ -32,7 +32,7 @@ export default class CortexPlugin extends Plugin {
 
     this.addCommand({
       id: 'open-cortex-agent',
-      name: 'Open Cortex agent',
+      name: 'Open agent panel',
       callback: () => {
         this.activateView();
       }
@@ -40,7 +40,7 @@ export default class CortexPlugin extends Plugin {
 
     this.addCommand({
       id: 'open-cortex-settings',
-      name: 'Open Cortex settings',
+      name: 'Open settings',
       callback: () => {
         (this.app as any).setting.open();
         (this.app as any).setting.openTabById('cortex');

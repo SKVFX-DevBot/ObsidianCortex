@@ -7,6 +7,8 @@ export interface CortexSettings {
   sendOnEnter: boolean;
   resumeLastSession: boolean;
   autonomousMemory: boolean;
+  /** Vault tree depth injected at session start. 0=off, 1=root only, N=N levels, -1=unlimited. */
+  vaultTreeDepth: number;
 }
 
 export const DEFAULT_SETTINGS: CortexSettings = {
@@ -15,6 +17,7 @@ export const DEFAULT_SETTINGS: CortexSettings = {
   sendOnEnter: true,
   resumeLastSession: true,
   autonomousMemory: true,
+  vaultTreeDepth: 3,
 };
 
 export class CortexSettingsTab extends PluginSettingTab {
@@ -51,6 +54,35 @@ export class CortexSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.contextFilePath)
           .onChange(async (value) => {
             this.plugin.settings.contextFilePath = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Vault tree depth')
+      .setDesc(
+        'How many levels of your vault folder/file tree to include at the start of each session. ' +
+        'This gives Claude a map of your vault structure (names only — no file contents are read). ' +
+        'Deeper trees cost more tokens on the first message of each session. ' +
+        '"Off" disables the tree entirely.'
+      )
+      .addDropdown((drop) =>
+        drop
+          .addOption('0', 'Off')
+          .addOption('1', '1 level (root only)')
+          .addOption('2', '2 levels')
+          .addOption('3', '3 levels (default)')
+          .addOption('4', '4 levels')
+          .addOption('5', '5 levels')
+          .addOption('6', '6 levels')
+          .addOption('7', '7 levels')
+          .addOption('8', '8 levels')
+          .addOption('9', '9 levels')
+          .addOption('10', '10 levels')
+          .addOption('-1', 'Unlimited')
+          .setValue(String(this.plugin.settings.vaultTreeDepth))
+          .onChange(async (value) => {
+            this.plugin.settings.vaultTreeDepth = parseInt(value, 10);
             await this.plugin.saveSettings();
           })
       );

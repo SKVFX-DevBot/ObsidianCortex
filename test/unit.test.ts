@@ -17,9 +17,9 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { EventEmitter } from 'node:events';
 
-import { titleFromPrompt, saveSession, loadAllSessions, deleteSession, loadSessionMessages, getSessionsDir } from '../src/utils/sessionStorage.ts';
-import { estimateTokens } from '../src/utils/logger.ts';
-import { parseStreamOutput } from '../src/ClaudeProcess.ts';
+import { titleFromPrompt, saveSession, loadAllSessions, deleteSession, loadSessionMessages, getSessionsDir } from '../src/utils/sessionStorage';
+import { estimateTokens } from '../src/utils/logger';
+import { parseStreamOutput } from '../src/ClaudeProcess';
 
 // ---------------------------------------------------------------------------
 // Helpers

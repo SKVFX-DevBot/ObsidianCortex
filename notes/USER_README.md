@@ -11,7 +11,6 @@ Cortex is an Obsidian plugin that puts a Claude Code agent inside your vault. Th
 - [First Launch](#first-launch)
 - [Using the Chat Panel](#using-the-chat-panel)
 - [Context System](#context-system)
-- [Per-Note Frontmatter Controls](#per-note-frontmatter-controls)
 - [Commands](#commands)
 - [Settings](#settings)
 - [Known Limitations](#known-limitations)
@@ -81,10 +80,24 @@ Claude has access to your full vault — it can read, write, create, move, and o
 
 ## Context System
 
-Cortex uses four layers of context to give Claude the right information at the start of each session:
+Cortex injects context at the start of each new session so Claude understands your vault before you ask your first question. Nothing is injected on subsequent turns — those use session resumption (`--resume`) which is far cheaper.
 
 ### 1. Vault Tree
-A folder structure overview is automatically included so Claude understands your vault layout.
+
+A folder and file name overview of your vault is automatically included so Claude understands your vault's layout. **Only names are listed — no file contents are read.** Hidden files and folders (names starting with `.`) are skipped.
+
+The depth of the tree is configurable in **Settings → Cortex → Vault tree depth**:
+
+| Setting | What Claude sees |
+|---------|-----------------|
+| Off | No vault tree — Claude has no structural overview |
+| 1 level | Root-level folders and files only |
+| 2 levels | Root + one sublevel |
+| 3 levels *(default)* | Root + two sublevels |
+| N levels | N levels deep from the root |
+| Unlimited | The full tree at any depth |
+
+Deeper trees give Claude better spatial awareness of large vaults but cost more tokens on the first message of each session. For most vaults, 3 levels is a reasonable balance.
 
 ### 2. Context File (Persistent Memory)
 
@@ -104,9 +117,13 @@ You can seed it manually with your vault conventions:
 Working on Q2 planning. Key notes: [[Q2 Goals]], [[Team Roster]]
 ```
 
-**Autonomous memory** (on by default): Claude is instructed to update this file on its own as it learns about your vault — naming conventions, ongoing projects, your preferences, decisions made. You can inspect and edit this file at any time in Obsidian. Disable in **Settings → Cortex → Autonomous memory** if you prefer to manage it manually (e.g., if your vault is public or shared).
-
 The context file path is configurable in **Settings → Cortex**.
+
+### 3. Autonomous Memory Instruction
+
+When **Autonomous memory** is enabled (on by default), Claude is instructed to actively maintain the context file as it learns about your vault — naming conventions, ongoing projects, your preferences, decisions made. Claude updates the file directly using its file-editing tools; you can inspect and edit it at any time in Obsidian.
+
+Disable in **Settings → Cortex → Autonomous memory** if you prefer to manage the context file manually, or if your vault is public or shared.
 
 #### Two kinds of memory
 
@@ -136,73 +153,6 @@ Understanding when tokens are spent helps you use Cortex efficiently:
 
 **The key insight:** Claude's prompt cache expires after ~1 hour. Continuing a session within an hour is cheap; resuming a session after an overnight shutdown pays full price to reload the history. For sessions you haven't used in a while, starting a new session (paying only for context injection) may be cheaper than resuming a large accumulated one.
 
-### 3. Pinned Notes
-Individual notes can be permanently pinned to every session using frontmatter (see below).
-
-### 4. Inline Selection
-Highlight text in any note before sending a message — the selection is included in the prompt automatically.
-
----
-
-## Per-Note Frontmatter Controls
-
-Add a `claude:` block to any note's YAML frontmatter to control how Cortex treats it.
-
-### `readonly` / `protect`
-Prevents Claude from modifying the note. Claude can still read it.
-
-```yaml
----
-claude:
-  readonly: true
----
-```
-
-### `context: always`
-Pins the note — its content is injected into every session automatically.
-
-```yaml
----
-claude:
-  context: always
----
-```
-
-Useful for your goals note, active project brief, or any note Claude should always be aware of.
-
-### `context: never`
-Excludes the note from Claude's access entirely. Claude will not read or write this note.
-
-```yaml
----
-claude:
-  context: never
----
-```
-
-Useful for private notes, sensitive information, or notes that would add noise without value.
-
-### `instructions`
-Injects a custom instruction whenever Claude reads or references this note.
-
-```yaml
----
-claude:
-  instructions: "This is a template — never modify it directly. Copy it to create new instances."
----
-```
-
-### Combining fields
-
-```yaml
----
-claude:
-  readonly: true
-  context: always
-  instructions: "This is the master project brief. Reference it for all project-related questions."
----
-```
-
 ---
 
 ## Commands
@@ -228,7 +178,7 @@ Cortex provides a full command palette for quick access to all features. Press *
 
 | Command                        | ID                           | Description                                                                                           |
 | ------------------------------ | ---------------------------- | ----------------------------------------------------------------------------------------------------- |
-| **Export Cortex conversation** | `export-cortex-conversation` | Export the current conversation as a markdown file. Useful for saving recipes, decisions, or outputs. |
+| **Export Cortex conversation** | `export-cortex-conversation` | Copy the current conversation as markdown to the clipboard.                                           |
 | **Copy Cortex last response**  | `copy-cortex-last-response`  | Copy Claude's last response to the clipboard in markdown format.                                      |
 | **Open Cortex settings**       | `open-cortex-settings`       | Jump directly to the Cortex settings panel.                                                           |
 
@@ -242,6 +192,7 @@ Open **Settings → Cortex** to configure:
 | ------------------------------ | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Claude binary path             | *(auto-detect)*      | Full path to the `claude` executable. Leave blank to auto-detect from PATH and common install locations.                                                |
 | Context file path              | `_claude-context.md` | Vault-relative path to the context file injected at session start.                                                                                      |
+| Vault tree depth               | 3 levels             | How many levels of folder/file names to inject at session start. 0 = off, 1 = root only, -1 = unlimited. Names only — no file contents are read.       |
 | Send on Enter                  | On                   | Press Enter to send a message. Shift+Enter always inserts a newline.                                                                                    |
 | Resume last session on startup | On                   | Automatically resume the most recent session when the Cortex panel opens.                                                                               |
 | Autonomous memory              | On                   | Claude will autonomously update the context file as it learns about your vault. Disable if you prefer to manage it manually or if your vault is shared. |
@@ -251,10 +202,10 @@ Open **Settings → Cortex** to configure:
 ## Known Limitations
 
 - **Desktop only** — Obsidian mobile is not supported (Node.js APIs are unavailable on mobile)
-- **Windows:** Claude Code must be installed natively in PowerShell, not just the desktop or web app versions.
-- **One active session at a time** — concurrent sessions are not supported in v1
-- Claude operates with full vault access — use `readonly` frontmatter on notes you don't want modified
-- Sessions are stored in `.obsidian/claude/sessions/` which is typically gitignored; sessions do not sync across devices
+- **Windows:** Claude Code must be installed natively in PowerShell, not just the desktop or web app versions
+- **One active session at a time** — concurrent sessions are not supported
+- Claude operates with full vault access
+- Sessions are stored in `.obsidian/plugins/cortex/.claude/sessions/` which is typically gitignored; sessions do not sync across devices
 
 ---
 
@@ -267,4 +218,4 @@ Claude Code is not installed or not in a location Cortex can find. Either instal
 Ensure Safe Mode is disabled (Settings → Community Plugins) and that the `cortex/` folder contains both `main.js` and `manifest.json`. Restart Obsidian after installing.
 
 **Claude doesn't seem to know about my vault structure**
-Check that your context file exists at the configured path (`_claude-context.md` by default) and contains useful information about your vault.
+Check that your context file exists at the configured path (`_claude-context.md` by default) and contains useful information about your vault. Also check that **Vault tree depth** is not set to Off.
