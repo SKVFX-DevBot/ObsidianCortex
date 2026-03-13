@@ -4,7 +4,8 @@ Obsidian plugin. Claude Code CLI as subprocess (NOT API, NOT Agent SDK). No API 
 
 ## Architecture (locked — don't revisit without discussion)
 - `child_process.spawn` → `powershell.exe -NonInteractive -Command "& 'claude.exe' ..."` (Windows/Electron stdout fix)
-- `proc.stdin.end()` after spawn (required or claude hangs)
+- **Prompt is written to `proc.stdin`, NOT passed as a CLI arg.** `proc.stdin.write(prompt)` then `proc.stdin.end()`. This avoids all Windows shell-quoting issues (smart quotes, double quotes, special chars).
+- `proc.stdin.end()` closes stdin so claude doesn't hang waiting for more input
 - Flags: `--output-format stream-json --verbose --print --dangerously-skip-permissions`
 - `--verbose` required with `stream-json` + `--print` or claude errors
 - Delete `CLAUDECODE` from spawn env or claude refuses nested launch
@@ -14,7 +15,7 @@ Obsidian plugin. Claude Code CLI as subprocess (NOT API, NOT Agent SDK). No API 
 - Sessions: `.obsidian/plugins/cortex/.claude/sessions/<id>.json` (metadata only; actual history in `~/.claude/projects/`)
 
 ## Current status
-Working: chat panel, markdown rendering, session persistence + history UI, session resume + history display, context injection (vault tree + context file + memory instruction), send-on-enter, command palette (8 cmds), export/copy, token logging, autonomous memory setting, remote session detection.
+Working: chat panel, markdown rendering, session persistence + history UI, session resume + history display, context injection (vault tree + context file), send-on-enter, command palette (8 cmds), export/copy, token logging, autonomous memory setting, remote session detection, configurable vault tree depth (0=off, 1-10=N levels, -1=unlimited), stdin-based prompt delivery (fixes smart-quote/special-char bugs on Windows).
 
 Remaining: FrontmatterGuard.ts (stubbed), pinned context files (backburned), permission dialog (currently using --dangerously-skip-permissions; future: native Obsidian modal).
 
@@ -26,7 +27,7 @@ Test vault: `D:\2\deleteme` (symlinked to plugin dir).
 | `main.ts`                     | Plugin entry, 8 commands, activateView                      |
 | `src/ClaudeView.ts`           | Chat UI, session state, context injection, history modal    |
 | `src/ClaudeProcess.ts`        | Binary detect, spawn (PowerShell on Win), stream-json parse |
-| `src/ContextManager.ts`       | Vault tree + context file + memory instruction assembly     |
+| `src/ContextManager.ts`       | Vault tree + context file assembly; depth setting controls tree output |
 | `src/settings.ts`             | Settings schema + tab UI                                    |
 | `src/utils/sessionStorage.ts` | Session CRUD, .jsonl parse, canResumeLocally                |
 | `src/utils/logger.ts`         | File + console logging, estimateTokens                      |

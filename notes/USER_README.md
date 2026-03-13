@@ -161,26 +161,26 @@ Cortex provides a full command palette for quick access to all features. Press *
 
 ### Panel & Navigation
 
-| Command                         | ID                            | Description                                                                                    |
-| ------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------- |
-| **Open Cortex agent**           | `open-cortex-agent`           | Opens or focuses the Cortex chat panel. You can also click the sprout icon in the left ribbon. |
-| **Toggle Cortex panel**         | `toggle-cortex-panel`         | Quickly hide or show the Cortex chat panel without closing it.                                 |
-| **Show Cortex session history** | `show-cortex-session-history` | Display a list of all saved sessions and resume a previous conversation.                       |
+| Command palette name              | ID                            | Description                                                                                    |
+| --------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------- |
+| **Cortex: Open agent panel**      | `open-cortex-agent`           | Opens or focuses the Cortex chat panel. You can also click the sprout icon in the left ribbon. |
+| **Cortex: Toggle Cortex panel**   | `toggle-cortex-panel`         | Quickly hide or show the Cortex chat panel without closing it.                                 |
+| **Cortex: Show session history**  | `show-cortex-session-history` | Display a list of all saved sessions and resume a previous conversation.                       |
 
 ### Session Management
 
-| Command                          | ID                     | Description                                                                                                            |
-| -------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| **New Cortex session**           | `new-cortex-session`   | Start a fresh conversation with Claude. The current session is saved automatically.                                    |
-| **Clear current Cortex session** | `clear-cortex-session` | Clear all messages from the current session. Claude can still see the vault tree and context file at the next message. |
+| Command palette name                | ID                     | Description                                                                                                            |
+| ----------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **Cortex: New session**             | `new-cortex-session`   | Start a fresh conversation with Claude. The current session is saved automatically.                                    |
+| **Cortex: Clear current session**   | `clear-cortex-session` | Clear all messages from the current session. Claude can still see the vault tree and context file at the next message. |
 
 ### Communication & Settings
 
-| Command                        | ID                           | Description                                                                                           |
-| ------------------------------ | ---------------------------- | ----------------------------------------------------------------------------------------------------- |
-| **Export Cortex conversation** | `export-cortex-conversation` | Copy the current conversation as markdown to the clipboard.                                           |
-| **Copy Cortex last response**  | `copy-cortex-last-response`  | Copy Claude's last response to the clipboard in markdown format.                                      |
-| **Open Cortex settings**       | `open-cortex-settings`       | Jump directly to the Cortex settings panel.                                                           |
+| Command palette name               | ID                           | Description                                                                                           |
+| ---------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Cortex: Export conversation**    | `export-cortex-conversation` | Copy the current conversation as markdown to the clipboard.                                           |
+| **Cortex: Copy last response**     | `copy-cortex-last-response`  | Copy Claude's last response to the clipboard in markdown format.                                      |
+| **Cortex: Open settings**          | `open-cortex-settings`       | Jump directly to the Cortex settings panel.                                                           |
 
 ---
 
