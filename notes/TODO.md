@@ -4,7 +4,7 @@ TODO
 *(none open)*
 
 ### Features — near term
-- [ ] #7  Improve "thinking" feedback (better spinner/status while waiting)
+- [X] #7  Improve "thinking" feedback (better spinner/status while waiting)
 - [X] #8  Up/down arrow to scroll through previous input messages
 - [ ] #10 Inline content generation (generate text at cursor in active note)
 - [ ] #13 Login management (detect login state, surface login prompt)

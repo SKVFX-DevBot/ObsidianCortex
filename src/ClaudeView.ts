@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, MarkdownRenderer, Notice } from 'obsidian';
+import { ItemView, WorkspaceLeaf, MarkdownRenderer, Notice, setIcon } from 'obsidian';
 import type CortexPlugin from '../main';
 import { spawnClaude, parseStreamOutput } from './ClaudeProcess';
 import { ContextManager } from './ContextManager';
@@ -13,6 +13,7 @@ import {
 } from './utils/sessionStorage';
 import { SessionListModal } from './modals/SessionListModal';
 import { ContextGenerationModal } from './ContextGenerationModal';
+import { AboutModal } from './modals/AboutModal';
 
 export const VIEW_TYPE_CLAUDE = 'cortex-chat';
 
@@ -48,17 +49,57 @@ export class ClaudeView extends ItemView {
     this.sessionStatusEl = toolbar.createSpan({ cls: 'cortex-session-status', text: 'New session' });
     this.sessionStatusEl.addEventListener('click', () => this.showSessionHistory());
     this.sessionStatusEl.title = 'Click to see session history';
-    const newSessionBtn = toolbar.createEl('button', { text: 'New', cls: 'cortex-new-session' });
+
+    const newSessionBtn = toolbar.createEl('button', { cls: 'cortex-icon-btn' });
+    setIcon(newSessionBtn, 'message-square-plus');
+    newSessionBtn.title = 'New session';
     newSessionBtn.addEventListener('click', () => this.startNewSession());
+
+    // Spacer pushes help/settings to the right
+    toolbar.createDiv({ cls: 'cortex-toolbar-spacer' });
+
+    const toolbarRight = toolbar.createDiv({ cls: 'cortex-toolbar-right' });
+
+    const helpBtn = toolbarRight.createEl('button', { cls: 'cortex-icon-btn' });
+    setIcon(helpBtn, 'circle-help');
+    helpBtn.title = 'About Cortex';
+    helpBtn.addEventListener('click', () => {
+      new AboutModal(this.app, this.plugin).open();
+    });
+
+    const settingsBtn = toolbarRight.createEl('button', { cls: 'cortex-icon-btn' });
+    setIcon(settingsBtn, 'settings');
+    settingsBtn.title = 'Open Cortex settings';
+    settingsBtn.addEventListener('click', () => {
+      (this.app as any).setting.open();
+      (this.app as any).setting.openTabById('cortex');
+    });
 
     this.messagesEl = root.createDiv({ cls: 'cortex-messages' });
 
-    const inputRow = root.createDiv({ cls: 'cortex-input-row' });
-    this.inputEl = inputRow.createEl('textarea', {
+    const inputArea = root.createDiv({ cls: 'cortex-input-area' });
+    this.inputEl = inputArea.createEl('textarea', {
       cls: 'cortex-input',
       attr: { placeholder: 'Ask Cortex…', rows: '3' },
     });
-    this.sendBtn = inputRow.createEl('button', { text: 'Send', cls: 'cortex-send' });
+
+    const inputToolbar = inputArea.createDiv({ cls: 'cortex-input-toolbar' });
+
+    const attachBtn = inputToolbar.createEl('button', { cls: 'cortex-icon-btn cortex-input-toolbar-btn' });
+    setIcon(attachBtn, 'paperclip');
+    attachBtn.title = 'Attach file (coming soon)';
+    attachBtn.disabled = true;
+
+    const slashBtn = inputToolbar.createEl('button', { cls: 'cortex-icon-btn cortex-input-toolbar-btn' });
+    setIcon(slashBtn, 'slash');
+    slashBtn.title = 'Slash commands (coming soon)';
+    slashBtn.disabled = true;
+
+    inputToolbar.createDiv({ cls: 'cortex-input-toolbar-spacer' });
+
+    this.sendBtn = inputToolbar.createEl('button', { cls: 'cortex-icon-btn cortex-send' });
+    setIcon(this.sendBtn, 'arrow-up');
+    this.sendBtn.title = 'Send message';
 
     this.sendBtn.addEventListener('click', () => this.handleSend());
     this.inputEl.addEventListener('keydown', (e) => {

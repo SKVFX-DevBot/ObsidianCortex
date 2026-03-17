@@ -1,4 +1,4 @@
-import { Modal, App } from 'obsidian';
+import { Modal, App, setIcon } from 'obsidian';
 import { StoredSession, saveSession, canResumeLocally, deleteSession } from '../utils/sessionStorage';
 
 export class SessionListModal extends Modal {
@@ -97,9 +97,11 @@ export class SessionListModal extends Modal {
     }
 
     const actionsDiv = item.createEl('div', { cls: 'cortex-session-actions' });
-    const renameBtn = actionsDiv.createEl('button', { text: '✏', cls: 'cortex-rename-btn' });
+    const renameBtn = actionsDiv.createEl('button', { cls: 'cortex-rename-btn' });
+    setIcon(renameBtn, 'pencil');
     renameBtn.title = 'Rename session';
-    const deleteBtn = actionsDiv.createEl('button', { text: '🗑', cls: 'cortex-delete-btn' });
+    const deleteBtn = actionsDiv.createEl('button', { cls: 'cortex-delete-btn' });
+    setIcon(deleteBtn, 'trash-2');
     deleteBtn.title = 'Delete session';
 
     item.addEventListener('click', (e) => {

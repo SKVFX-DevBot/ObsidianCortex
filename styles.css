@@ -32,25 +32,153 @@
   gap: 12px;
 }
 
-.cortex-input-row {
+.cortex-input-area {
   display: flex;
-  gap: 6px;
-  padding: 8px 10px;
+  flex-direction: column;
   border-top: 1px solid var(--background-modifier-border);
   flex-shrink: 0;
 }
 
 .cortex-input {
-  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
   resize: vertical;
   min-height: 60px;
   font-family: inherit;
   font-size: inherit;
   background: var(--background-secondary);
   color: var(--text-normal);
-  border: 1px solid var(--background-modifier-border);
+  border: none;
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding: 8px 10px;
+}
+
+.cortex-input:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--interactive-accent);
+}
+
+.cortex-input-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: var(--background-secondary);
+}
+
+.cortex-input-toolbar-spacer {
+  flex: 1;
+}
+
+.cortex-input-toolbar-btn {
+  opacity: 0.4;
+}
+
+.cortex-input-toolbar-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.2;
+}
+
+/* ── Icon buttons ── */
+.cortex-icon-btn {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0 !important;
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
   border-radius: 4px;
-  padding: 6px 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.cortex-icon-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.cortex-icon-btn:hover:not(:disabled) {
+  background: var(--background-modifier-hover) !important;
+  color: var(--text-normal);
+}
+
+.cortex-toolbar-spacer {
+  width: 12px;
+  flex-shrink: 0;
+}
+
+.cortex-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.cortex-send {
+  color: var(--interactive-accent);
+}
+
+.cortex-send:hover:not(:disabled) {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+/* ── About modal ── */
+.cortex-about-modal {
+  text-align: center;
+  padding: 16px 8px 8px;
+}
+
+.cortex-about-logo img {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  object-fit: cover;
+  margin-bottom: 12px;
+}
+
+.cortex-about-title {
+  margin: 0 0 4px;
+}
+
+.cortex-about-version {
+  color: var(--text-muted);
+  font-size: 0.85em;
+  margin: 0 0 12px;
+}
+
+.cortex-about-desc {
+  color: var(--text-muted);
+  font-size: 0.9em;
+  margin: 0 0 20px;
+}
+
+.cortex-about-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.cortex-about-link-btn {
+  padding: 6px 16px;
+  border-radius: 4px;
+  border: 1px solid var(--background-modifier-border);
+  text-decoration: none;
+  font-size: 0.9em;
+  color: var(--text-normal);
+}
+
+.cortex-about-link-btn.mod-cta {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: transparent;
+}
+
+.cortex-about-link-btn:hover {
+  opacity: 0.85;
 }
 
 /* ── Messages ── */
