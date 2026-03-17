@@ -1,6 +1,7 @@
 import { ItemView, WorkspaceLeaf, MarkdownRenderer, Notice, setIcon } from 'obsidian';
 import type CortexPlugin from '../main';
 import { spawnClaude, parseStreamOutput } from './ClaudeProcess';
+import { extractActions, executeAction } from './UIBridge';
 import { ContextManager } from './ContextManager';
 import { log, estimateTokens } from './utils/logger';
 import {
@@ -393,7 +394,21 @@ export class ClaudeView extends ItemView {
       onText: (delta) => {
         statusEl.remove();
         accumulated += delta;
+        // Catch any action lines that arrive via text (belt-and-suspenders)
+        if (this.plugin.settings.uiBridgeEnabled) {
+          const { clean, actions } = extractActions(accumulated);
+          accumulated = clean;
+          actions.forEach(a => executeAction(this.app, a));
+        }
         assistantEl.setText(accumulated);
+      },
+      onAction: (line) => {
+        if (this.plugin.settings.uiBridgeEnabled) {
+          try {
+            const { actions } = extractActions(line + '\n');
+            actions.forEach(a => executeAction(this.app, a));
+          } catch { /* malformed — already logged in extractActions */ }
+        }
       },
       onToolCall: (tool) => {
         statusEl.setText(toolLabels[tool] ?? 'Working…');

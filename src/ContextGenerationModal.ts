@@ -103,6 +103,7 @@ export class ContextGenerationModal extends Modal {
 
     parseStreamOutput(proc, {
       onText: () => { /* background — discard streaming text */ },
+      onAction: () => { /* background — discard UI actions */ },
       onToolCall: (tool) => { log('ContextGenerationModal: tool call:', tool); },
       onDone: () => {
         const exists = this.app.vault.getFileByPath(this.contextFilePath);

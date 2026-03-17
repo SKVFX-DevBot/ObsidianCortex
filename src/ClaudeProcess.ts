@@ -1,4 +1,5 @@
 import { existsSync } from 'fs';
+import { ACTION_PREFIX } from './UIBridge';
 import { join } from 'path';
 import * as os from 'os';
 import { execSync } from 'child_process';
@@ -126,6 +127,7 @@ export function spawnClaude(opts: SpawnOptions): ChildProcess {
 
 export interface StreamCallbacks {
   onText: (delta: string) => void;
+  onAction: (line: string) => void;
   onToolCall: (tool: string, input: unknown) => void;
   onDone: (sessionId?: string) => void;
   onError: (err: string) => void;
@@ -182,7 +184,18 @@ function handleMessage(
       if (content) {
         for (const block of content) {
           if (block.type === 'text') {
-            cb.onText((block.text as string) ?? '');
+            const raw = (block.text as string) ?? '';
+            // Route @@CORTEX_ACTION lines to onAction; pass the rest to onText
+            const textLines: string[] = [];
+            for (const line of raw.split('\n')) {
+              if (line.startsWith(ACTION_PREFIX)) {
+                cb.onAction(line);
+              } else {
+                textLines.push(line);
+              }
+            }
+            const clean = textLines.join('\n');
+            if (clean) cb.onText(clean);
           } else if (block.type === 'tool_use') {
             cb.onToolCall(block.name as string, block.input);
           }

@@ -210,6 +210,7 @@ describe('parseStreamOutput', () => {
 
       parseStreamOutput(proc, {
         onText: (t) => texts.push(t),
+        onAction: () => { /* tests don't exercise UI bridge */ },
         onToolCall: (name) => tools.push(name),
         onDone: (id) => { sessionId = id; resolve({ texts, tools, sessionId, errors }); },
         onError: (e) => errors.push(e),

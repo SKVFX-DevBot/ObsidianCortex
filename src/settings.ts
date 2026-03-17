@@ -11,6 +11,8 @@ export interface CortexSettings {
   vaultTreeDepth: number;
   /** User dismissed the context file setup modal and doesn't want to see it again. */
   skipContextFilePrompt: boolean;
+  /** Allow Claude to trigger Obsidian UI actions (open files, show notices, etc.) */
+  uiBridgeEnabled: boolean;
 }
 
 export const DEFAULT_SETTINGS: CortexSettings = {
@@ -21,6 +23,7 @@ export const DEFAULT_SETTINGS: CortexSettings = {
   autonomousMemory: true,
   vaultTreeDepth: 3,
   skipContextFilePrompt: false,
+  uiBridgeEnabled: true,
 };
 
 export class CortexSettingsTab extends PluginSettingTab {
@@ -140,6 +143,18 @@ export class CortexSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.autonomousMemory)
           .onChange(async (value) => {
             this.plugin.settings.autonomousMemory = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('UI Bridge')
+      .setDesc('Allow Claude to trigger Obsidian UI actions — open files, show notices, navigate headings. Claude is instructed to use these proactively after completing tasks.')
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.uiBridgeEnabled)
+          .onChange(async (value) => {
+            this.plugin.settings.uiBridgeEnabled = value;
             await this.plugin.saveSettings();
           })
       );
