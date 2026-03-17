@@ -219,3 +219,9 @@ Ensure Safe Mode is disabled (Settings → Community Plugins) and that the `cort
 
 **Claude doesn't seem to know about my vault structure**
 Check that your context file exists at the configured path (`_claude-context.md` by default) and contains useful information about your vault. Also check that **Vault tree depth** is not set to Off.
+
+**Claude is doing something unexpected mid-task**
+Click the **Stop** button (the square icon in the input bar, visible while Claude is running) to interrupt immediately. Claude's process and any subprocesses are killed. Any files already written before you stopped will remain — review them before continuing. Start a new session or send a follow-up message to correct course.
+
+**Claude seems to be running but nothing is happening**
+If the status indicator has been showing for a long time with no output, Claude may be stuck. Click **Stop** to interrupt, then try again. On Windows, make sure Claude Code is installed and authenticated natively in PowerShell (`claude --version` should work in a PowerShell terminal).
