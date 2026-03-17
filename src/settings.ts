@@ -9,6 +9,8 @@ export interface CortexSettings {
   autonomousMemory: boolean;
   /** Vault tree depth injected at session start. 0=off, 1=root only, N=N levels, -1=unlimited. */
   vaultTreeDepth: number;
+  /** User dismissed the context file setup modal and doesn't want to see it again. */
+  skipContextFilePrompt: boolean;
 }
 
 export const DEFAULT_SETTINGS: CortexSettings = {
@@ -18,6 +20,7 @@ export const DEFAULT_SETTINGS: CortexSettings = {
   resumeLastSession: true,
   autonomousMemory: true,
   vaultTreeDepth: 3,
+  skipContextFilePrompt: false,
 };
 
 export class CortexSettingsTab extends PluginSettingTab {
@@ -31,6 +34,9 @@ export class CortexSettingsTab extends PluginSettingTab {
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
+
+    // ── General ────────────────────────────────────────────────────────────
+    containerEl.createEl('h3', { text: 'General' });
 
     new Setting(containerEl)
       .setName('Claude binary path')
@@ -46,6 +52,33 @@ export class CortexSettingsTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName('Send on Enter')
+      .setDesc('Press Enter to send. Shift+Enter always inserts a newline.')
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.sendOnEnter)
+          .onChange(async (value) => {
+            this.plugin.settings.sendOnEnter = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Resume last session on startup')
+      .setDesc('Automatically resume the most recent session when the panel opens.')
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.resumeLastSession)
+          .onChange(async (value) => {
+            this.plugin.settings.resumeLastSession = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    // ── Context & Memory ───────────────────────────────────────────────────
+    containerEl.createEl('h3', { text: 'Context & Memory' });
+
+    new Setting(containerEl)
       .setName('Context file path')
       .setDesc('Vault-relative path to the context file injected at session start.')
       .addText((text) =>
@@ -55,6 +88,18 @@ export class CortexSettingsTab extends PluginSettingTab {
           .onChange(async (value) => {
             this.plugin.settings.contextFilePath = value;
             await this.plugin.saveSettings();
+          })
+      )
+      .addButton((btn) =>
+        btn
+          .setButtonText('Open file')
+          .setTooltip('Open the context file in Obsidian for editing')
+          .onClick(async () => {
+            let file = this.app.vault.getFileByPath(this.plugin.settings.contextFilePath);
+            if (!file) {
+              file = await this.app.vault.create(this.plugin.settings.contextFilePath, '');
+            }
+            await this.app.workspace.getLeaf(false).openFile(file);
           })
       );
 
@@ -88,30 +133,6 @@ export class CortexSettingsTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Send on Enter')
-      .setDesc('Press Enter to send. Shift+Enter always inserts a newline.')
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.sendOnEnter)
-          .onChange(async (value) => {
-            this.plugin.settings.sendOnEnter = value;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(containerEl)
-      .setName('Resume last session on startup')
-      .setDesc('Automatically resume the most recent session when the panel opens.')
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.resumeLastSession)
-          .onChange(async (value) => {
-            this.plugin.settings.resumeLastSession = value;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(containerEl)
       .setName('Autonomous memory')
       .setDesc(`Claude will autonomously update the context file (${this.plugin.settings.contextFilePath}) as it learns about your vault. Disable if you prefer to manage the context file manually, or if your vault is shared/public.`)
       .addToggle((toggle) =>
@@ -119,6 +140,18 @@ export class CortexSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.autonomousMemory)
           .onChange(async (value) => {
             this.plugin.settings.autonomousMemory = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Show context file setup prompt')
+      .setDesc('Show the setup modal on launch when no context file is found. Disable if you prefer to create the file manually.')
+      .addToggle((toggle) =>
+        toggle
+          .setValue(!this.plugin.settings.skipContextFilePrompt)
+          .onChange(async (value) => {
+            this.plugin.settings.skipContextFilePrompt = !value;
             await this.plugin.saveSettings();
           })
       );

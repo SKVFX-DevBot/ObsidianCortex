@@ -12,6 +12,7 @@ import {
   loadSessionMessages,
 } from './utils/sessionStorage';
 import { SessionListModal } from './modals/SessionListModal';
+import { ContextGenerationModal } from './ContextGenerationModal';
 
 export const VIEW_TYPE_CLAUDE = 'cortex-chat';
 
@@ -105,6 +106,24 @@ export class ClaudeView extends ItemView {
       if (sessions.length > 0) {
         await this.loadSession(sessions[0]);
       }
+    }
+
+    // Show context file setup modal if the configured file doesn't exist and user hasn't skipped
+    if (
+      !this.plugin.settings.skipContextFilePrompt &&
+      this.plugin.claudeBinaryPath &&
+      !this.app.vault.getFileByPath(this.plugin.settings.contextFilePath)
+    ) {
+      const vaultRoot = (this.app.vault.adapter as any).basePath;
+      new ContextGenerationModal(
+        this.app,
+        this.plugin,
+        this.plugin.settings.contextFilePath,
+        this.plugin.claudeBinaryPath,
+        vaultRoot,
+        this.plugin.shellEnv,
+        this.plugin.settings.vaultTreeDepth,
+      ).open();
     }
   }
 

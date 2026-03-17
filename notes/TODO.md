@@ -5,7 +5,7 @@ TODO
 
 ### Features — near term
 - [ ] #7  Improve "thinking" feedback (better spinner/status while waiting)
-- [ ] #8  Up/down arrow to scroll through previous input messages
+- [X] #8  Up/down arrow to scroll through previous input messages
 - [ ] #10 Inline content generation (generate text at cursor in active note)
 - [ ] #13 Login management (detect login state, surface login prompt)
 - [ ] #15 FrontmatterGuard: per-note readonly/protect/instructions/context controls (FrontmatterGuard.ts stubbed)
@@ -14,7 +14,7 @@ TODO
 - [ ] #18 Native permission dialog to replace --dangerously-skip-permissions
 - [ ] #19 Compaction detection and user notification
 - [ ] #20 Configurable session storage location
-- [ ] #21 Vault context file auto-generation on first launch
+- [X] #21 Vault context file auto-generation on first launch
 - [ ] #22 Setting: re-inject context on every turn (not just session start)
 - [ ] #29 Image/PDF support
 - [ ] #30 Use Lucide icons for all app icons
