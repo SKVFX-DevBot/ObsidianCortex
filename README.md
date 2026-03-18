@@ -42,7 +42,7 @@
 
 ---
 
-> **Status:** Public beta — not yet in the Obsidian community plugin browser. Install manually from [Releases](https://github.com/ScottKirvan/Cortex/releases). Feedback welcome on [Discord](https://discord.gg/TN6XJSNK5Y) or via [GitHub Issues](https://github.com/ScottKirvan/Cortex/issues).
+> **Status:** Public beta — not yet in the Obsidian community plugin browser. Install manually using the [BRAT](https://github.com/TfTHacker/obsidian42-brat) plugin, or from [Releases](https://github.com/ScottKirvan/Cortex/releases). Feedback welcome on [Discord](https://discord.gg/TN6XJSNK5Y) or via [GitHub Issues](https://github.com/ScottKirvan/Cortex/issues).
 
 ---
 
