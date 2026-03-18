@@ -6,5 +6,6 @@
   "description": "Claude Code agentic file management for Obsidian vaults",
   "author": "Scott Kirvan",
   "authorUrl": "https://github.com/ScottKirvan",
+  "fundingUrl": "https://github.com/sponsors/ScottKirvan",
   "isDesktopOnly": true
 }
