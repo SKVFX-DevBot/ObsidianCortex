@@ -1,4 +1,5 @@
 import { ItemView, WorkspaceLeaf, MarkdownRenderer, Notice, setIcon } from 'obsidian';
+import { spawn } from 'child_process';
 import type CortexPlugin from '../main';
 import { spawnClaude, parseStreamOutput, killProcess, findClaudeBinary } from './ClaudeProcess';
 import { extractActions, executeAction } from './UIBridge';
@@ -480,6 +481,8 @@ export class ClaudeView extends ItemView {
 
         if (!accumulated) {
           assistantEl.setText('(no response)');
+        } else if (this.isAuthError(accumulated)) {
+          this.renderAuthError(assistantEl);
         } else {
           assistantEl.dataset.markdown = accumulated;
           assistantEl.empty();
@@ -587,6 +590,52 @@ export class ClaudeView extends ItemView {
         });
         setTimeout(() => err.remove(), 6000);
       }
+    });
+  }
+
+  private isAuthError(text: string): boolean {
+    return text.includes('Not logged in');
+  }
+
+  private renderAuthError(el: HTMLElement) {
+    el.empty();
+    el.createEl('p', { text: 'ERROR: Claude Code is not authenticated.', cls: 'cortex-setup-step-title' });
+    el.createEl('p', {
+      text: 'Click Open terminal below. Claude Code will launch and open a browser window to log in. ' +
+        'If the browser does not open automatically, press c in the terminal to copy the login URL.',
+      cls: 'cortex-setup-note',
+    });
+    el.createEl('p', {
+      text: 'A Claude Pro or Max subscription is required.',
+      cls: 'cortex-setup-note',
+    });
+
+    const btnRow = el.createDiv({ cls: 'cortex-setup-btn-row' });
+
+    const loginBtn = btnRow.createEl('button', { text: 'Open terminal', cls: 'mod-cta cortex-setup-check-btn' });
+    loginBtn.addEventListener('click', () => {
+      const binaryPath = this.plugin.claudeBinaryPath!;
+      const isWin = process.platform === 'win32';
+
+      if (isWin) {
+        spawn('cmd.exe', ['/c', 'start', 'powershell.exe', '-NoExit', '-Command', `& '${binaryPath}'`], { detached: true });
+      } else {
+        const term = process.platform === 'darwin' ? 'open' : 'x-terminal-emulator';
+        const args = process.platform === 'darwin'
+          ? ['-a', 'Terminal', '--args', binaryPath]
+          : ['-e', binaryPath];
+        spawn(term, args, { detached: true });
+      }
+
+      loginBtn.setText('Opened — log in, then click Done');
+      loginBtn.disabled = true;
+
+      const doneBtn = btnRow.createEl('button', { text: 'Done', cls: 'cortex-setup-check-btn' });
+      doneBtn.addEventListener('click', async () => {
+        doneBtn.setText('Checking…');
+        doneBtn.disabled = true;
+        await this.onOpen();
+      });
     });
   }
 
