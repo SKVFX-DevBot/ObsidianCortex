@@ -32,11 +32,11 @@
   <span> · </span>
   <a href="https://github.com/ScottKirvan/Cortex/issues/new?template=feature_request.md">Request Feature</a>
   <span> · </span>
-  <a href="notes/USER_README.md">User Guide</a>
+  <a href="[notes/USER_README.md](https://www.scottkirvan.com/Cortex/notes/USER_README.html)">User Guide</a>
   <span> · </span>
   <a href="https://discord.gg/TN6XJSNK5Y">Discord</a>
   <span> · </span>
-  <a href="CONTRIBUTING.md">Contributing</a>
+  <a href="https://www.scottkirvan.com/Cortex/CONTRIBUTING.html">Contributing</a>
 </h4>
 </div>
 
