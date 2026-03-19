@@ -90,7 +90,18 @@ export function loadSessionMessages(claudeSessionId: string): ChatMessage[] {
 
         if (entry.type === 'user') {
           const msg = entry.message as Record<string, unknown> | undefined;
-          let content = typeof msg?.content === 'string' ? msg.content : '';
+          let content: string;
+          if (typeof msg?.content === 'string') {
+            content = msg.content;
+          } else if (Array.isArray(msg?.content)) {
+            // Claude stores user messages as content block arrays in some formats
+            content = (msg.content as Array<Record<string, unknown>>)
+              .filter(b => b.type === 'text')
+              .map(b => b.text as string)
+              .join('');
+          } else {
+            content = '';
+          }
           if (isFirstUser) {
             // Strip injected vault context from display
             content = content.replace(/<vault_context>[\s\S]*?<\/vault_context>\s*/g, '').trim();

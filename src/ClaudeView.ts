@@ -19,6 +19,66 @@ import { AboutModal } from './modals/AboutModal';
 
 export const VIEW_TYPE_CLAUDE = 'cortex-chat';
 
+const TOOL_LABELS: Record<string, string> = {
+  read_file:    'Read',
+  write_file:   'Write',
+  edit_file:    'Edit',
+  list_files:   'List',
+  search_files: 'Search',
+  bash:         'Bash',
+  web_fetch:    'Fetch',
+  web_search:   'Web search',
+};
+
+const TOOL_STATUS: Record<string, string> = {
+  read_file:    'Reading…',
+  write_file:   'Writing…',
+  edit_file:    'Editing…',
+  list_files:   'Scanning vault…',
+  search_files: 'Searching…',
+  bash:         'Running command…',
+  web_fetch:    'Fetching…',
+  web_search:   'Searching the web…',
+};
+
+const TOOL_ICONS: Record<string, string> = {
+  read_file:    'file-text',
+  write_file:   'file-edit',
+  edit_file:    'file-edit',
+  list_files:   'folder',
+  search_files: 'search',
+  bash:         'terminal',
+  web_fetch:    'globe',
+  web_search:   'globe',
+};
+
+function extractToolDetail(tool: string, input: unknown): string {
+  if (!input || typeof input !== 'object') return '';
+  const inp = input as Record<string, unknown>;
+  switch (tool) {
+    case 'read_file':
+    case 'write_file':
+    case 'edit_file': {
+      const p = (inp.path as string) ?? '';
+      return p.split(/[\\/]/).pop() ?? p;
+    }
+    case 'list_files':
+      return (inp.path as string) || '.';
+    case 'bash': {
+      const cmd = (inp.command as string) ?? '';
+      return cmd.length > 60 ? cmd.substring(0, 60) + '…' : cmd;
+    }
+    case 'search_files':
+      return (inp.pattern as string) ?? (inp.path as string) ?? '';
+    case 'web_fetch':
+      return (inp.url as string) ?? '';
+    case 'web_search':
+      return (inp.query as string) ?? '';
+    default:
+      return '';
+  }
+}
+
 export class ClaudeView extends ItemView {
   plugin: CortexPlugin;
   private inputEl: HTMLTextAreaElement;
@@ -279,6 +339,38 @@ export class ClaudeView extends ItemView {
     this.inputEl?.focus();
   }
 
+  injectSelectionContext(selection: string, sourceName: string) {
+    // Show a visual context block so it's clear what's being attached
+    const ctxEl = this.messagesEl.createDiv({ cls: 'cortex-context-block' });
+    const header = ctxEl.createDiv({ cls: 'cortex-context-header' });
+    header.createSpan({ cls: 'cortex-context-source', text: `Context from: ${sourceName}` });
+    const clearBtn = header.createEl('button', { cls: 'cortex-context-clear', text: '×' });
+    clearBtn.title = 'Remove';
+    const body = ctxEl.createDiv({ cls: 'cortex-context-body', text: selection });
+    body.style.display = 'none'; // collapsed by default; header shows source label
+    const expandBtn = header.createEl('button', { cls: 'cortex-context-expand', text: '▶' });
+    expandBtn.title = 'Expand';
+    expandBtn.addEventListener('click', () => {
+      const shown = body.style.display !== 'none';
+      body.style.display = shown ? 'none' : 'block';
+      expandBtn.setText(shown ? '▶' : '▼');
+    });
+    ctxEl.scrollIntoView({ behavior: 'smooth' });
+
+    // Prepend to input as a blockquote so it's sent with the next message
+    const quote = selection.split('\n').map(l => `> ${l}`).join('\n');
+    const prefix = `**[from ${sourceName}]**\n${quote}\n\n`;
+    this.inputEl.value = prefix + this.inputEl.value;
+    this.inputEl.focus();
+
+    clearBtn.addEventListener('click', () => {
+      ctxEl.remove();
+      if (this.inputEl.value.startsWith(prefix)) {
+        this.inputEl.value = this.inputEl.value.substring(prefix.length);
+      }
+    });
+  }
+
   private async loadSession(session: StoredSession) {
     this.placeholderSessionId = undefined;
     this.currentSessionId = session.claudeSessionId || undefined;
@@ -361,7 +453,12 @@ export class ClaudeView extends ItemView {
     setSendState(true);
     this.appendMessage('user', prompt);
 
-    const assistantEl = this.appendMessage('assistant', '');
+    // Response group: tool events (above) + assistant bubble (below)
+    const responseGroupEl = this.messagesEl.createDiv({ cls: 'cortex-response-group' });
+    const toolEventsEl = responseGroupEl.createDiv({ cls: 'cortex-tool-events' });
+    toolEventsEl.style.display = 'none';
+    const assistantEl = responseGroupEl.createDiv({ cls: 'cortex-message cortex-assistant' });
+    assistantEl.scrollIntoView({ behavior: 'smooth' });
     const statusEl = assistantEl.createSpan({ cls: 'cortex-status', text: 'Thinking…' });
 
     let finalPrompt = prompt;
@@ -403,17 +500,7 @@ export class ClaudeView extends ItemView {
       return;
     }
 
-    const toolLabels: Record<string, string> = {
-      read_file:    'Reading…',
-      write_file:   'Writing…',
-      edit_file:    'Editing…',
-      list_files:   'Scanning vault…',
-      search_files: 'Searching…',
-      bash:         'Running command…',
-      web_fetch:    'Fetching…',
-      web_search:   'Searching the web…',
-    };
-
+    let toolCallCount = 0;
     let accumulated = '';
 
     parseStreamOutput(proc, {
@@ -436,9 +523,16 @@ export class ClaudeView extends ItemView {
           } catch { /* malformed — already logged in extractActions */ }
         }
       },
-      onToolCall: (tool) => {
-        statusEl.setText(toolLabels[tool] ?? 'Working…');
-        this.appendMessage('system', `Tool: ${tool}`);
+      onToolCall: (tool, input) => {
+        statusEl.setText(TOOL_STATUS[tool] ?? 'Working…');
+        toolCallCount++;
+        if (toolEventsEl.style.display === 'none') toolEventsEl.style.display = 'flex';
+        const row = toolEventsEl.createDiv({ cls: 'cortex-tool-event' });
+        const iconEl = row.createSpan({ cls: 'cortex-tool-event-icon' });
+        setIcon(iconEl, TOOL_ICONS[tool] ?? 'zap');
+        const detail = extractToolDetail(tool, input);
+        const label = TOOL_LABELS[tool] ?? tool;
+        row.createSpan({ cls: 'cortex-tool-event-label', text: detail ? `${label}: ${detail}` : label });
       },
       onDone: (sessionId) => {
         statusEl.remove();
@@ -485,6 +579,24 @@ export class ClaudeView extends ItemView {
           }
 
           this.updateSessionStatus();
+        }
+
+        // Collapse tool events into a toggle
+        if (toolCallCount > 0) {
+          const rows = Array.from(toolEventsEl.querySelectorAll('.cortex-tool-event')) as HTMLElement[];
+          rows.forEach(r => { r.style.display = 'none'; });
+          const s = toolCallCount === 1 ? '' : 's';
+          const toggle = toolEventsEl.createEl('button', {
+            cls: 'cortex-tool-toggle',
+            text: `${toolCallCount} tool call${s} ▶`,
+          });
+          toolEventsEl.insertBefore(toggle, toolEventsEl.firstChild);
+          let expanded = false;
+          toggle.addEventListener('click', () => {
+            expanded = !expanded;
+            rows.forEach(r => { r.style.display = expanded ? 'flex' : 'none'; });
+            toggle.setText(`${toolCallCount} tool call${s} ${expanded ? '▼' : '▶'}`);
+          });
         }
 
         if (!accumulated) {

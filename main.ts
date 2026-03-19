@@ -108,6 +108,30 @@ export default class CortexPlugin extends Plugin {
     });
 
     this.addCommand({
+      id: 'send-selection-to-cortex',
+      name: 'Send selection as context',
+      editorCallback: (editor) => {
+        const selection = editor.getSelection();
+        if (!selection) {
+          new Notice('No text selected');
+          return;
+        }
+        const file = this.app.workspace.getActiveFile();
+        const sourceName = file?.basename ?? 'note';
+        const existing = this.app.workspace.getLeavesOfType(VIEW_TYPE_CLAUDE);
+        if (existing.length) {
+          this.app.workspace.revealLeaf(existing[0]);
+          (existing[0].view as ClaudeView).injectSelectionContext(selection, sourceName);
+        } else {
+          this.activateView().then(() => {
+            const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_CLAUDE);
+            if (leaves.length) (leaves[0].view as ClaudeView).injectSelectionContext(selection, sourceName);
+          });
+        }
+      }
+    });
+
+    this.addCommand({
       id: 'focus-cortex-input',
       name: 'Focus chat input',
       callback: () => {
