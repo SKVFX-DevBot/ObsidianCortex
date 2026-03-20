@@ -861,10 +861,13 @@ export class ClaudeView extends ItemView {
     const match = before.match(/@(\S*)$/);
     if (!match) { this.atDropdownHide(); return; }
 
+    const textExts = new Set(
+      this.plugin.settings.atMentionExtensions.split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
+    );
     const query = match[1].toLowerCase();
     const activeFile = this.app.workspace.getActiveFile();
-    const files = this.app.vault.getMarkdownFiles()
-      .filter(f => !query || f.basename.toLowerCase().includes(query))
+    const files = this.app.vault.getFiles()
+      .filter(f => textExts.has(f.extension) && (!query || f.basename.toLowerCase().includes(query)))
       .sort((a, b) => {
         // Active note always sorts first when no query is typed
         if (!query) {
@@ -890,7 +893,8 @@ export class ClaudeView extends ItemView {
     el.style.display = 'block';
     this.atDropdownItems.forEach((file, i) => {
       const item = el.createDiv({ cls: 'cortex-at-item' + (i === this.atDropdownIndex ? ' cortex-at-item-active' : '') });
-      item.createSpan({ cls: 'cortex-at-item-name', text: file.basename });
+      const nameEl = item.createSpan({ cls: 'cortex-at-item-name', text: file.basename });
+      if (file.extension !== 'md') nameEl.createSpan({ cls: 'cortex-at-item-ext', text: '.' + file.extension });
       const parentPath = file.parent?.path;
       if (parentPath && parentPath !== '/') {
         item.createSpan({ cls: 'cortex-at-item-path', text: parentPath });

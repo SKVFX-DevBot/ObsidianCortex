@@ -23,6 +23,8 @@ export interface CortexSettings {
   logFilePath: string;
   /** How much detail to log. 'verbose' includes raw stream chunks and token breakdowns. */
   logVerbosity: 'normal' | 'verbose';
+  /** Comma-separated file extensions included in @-mention search. */
+  atMentionExtensions: string;
 }
 
 export const DEFAULT_SETTINGS: CortexSettings = {
@@ -38,6 +40,7 @@ export const DEFAULT_SETTINGS: CortexSettings = {
   logEnabled: true,
   logFilePath: '_cortex-debug.log',
   logVerbosity: 'normal',
+  atMentionExtensions: 'md, pdf, fountain, txt',
 };
 
 export class CortexSettingsTab extends PluginSettingTab {
@@ -88,6 +91,19 @@ export class CortexSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.resumeLastSession)
           .onChange(async (value) => {
             this.plugin.settings.resumeLastSession = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('@-mention file types')
+      .setDesc('Comma-separated extensions to include in @-mention search (e.g. md, fountain, txt).')
+      .addText((text) =>
+        text
+          .setPlaceholder('md, fountain, txt')
+          .setValue(this.plugin.settings.atMentionExtensions)
+          .onChange(async (value) => {
+            this.plugin.settings.atMentionExtensions = value;
             await this.plugin.saveSettings();
           })
       );

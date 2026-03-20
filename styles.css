@@ -581,6 +581,13 @@
   font-weight: 500;
 }
 
+.cortex-at-item-ext {
+  font-size: 0.75em;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-left: 2px;
+}
+
 .cortex-at-item-path {
   font-size: 0.75em;
   color: var(--text-faint);

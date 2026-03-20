@@ -89,7 +89,9 @@ You can attach additional context to your next message in two ways. Attached ite
 
 **@-mention a note**
 
-Type `@` anywhere in the chat input to open an autocomplete dropdown. Start typing the note name to filter the list. Press **↑ / ↓** to navigate, **Enter** or **Tab** to select, **Escape** to dismiss. The full contents of the selected note are attached as context.
+Type `@` anywhere in the chat input to open an autocomplete dropdown. The currently open note is pre-selected — press **Enter** immediately to attach it without typing. Start typing to filter by name. Press **↑ / ↓** to navigate, **Enter** or **Tab** to select, **Escape** to dismiss. The full contents of the selected note are attached as context.
+
+Non-Markdown files (e.g. `.fountain`, `.txt`) show their extension next to the filename in the dropdown so you can distinguish them from notes with the same name. The file types included in the search are configurable — see **@-mention file types** in Settings.
 
 **Send selected text**
 
@@ -231,6 +233,7 @@ Open **Settings → Cortex** to configure:
 | Enable debug log               | On                     | Write a debug log file to your vault. See [Logging](#logging) below.                                                                                    |
 | Log file path                  | `_cortex-debug.log`    | Vault-relative path for the log file. The file is appended to — delete it manually to start fresh.                                                      |
 | Log verbosity                  | Normal                 | Normal logs session events and errors. Verbose adds raw stream data and token breakdowns.                                                                |
+| @-mention file types           | `md, fountain, txt`    | Comma-separated file extensions included in the `@` autocomplete dropdown. Add any text-based format your vault uses.                                    |
 
 ---
 
