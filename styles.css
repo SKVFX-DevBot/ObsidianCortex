@@ -103,6 +103,37 @@
   opacity: 0.2;
 }
 
+.cortex-attach-popover {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 180px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.cortex-attach-option {
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 6px 10px;
+  text-align: left;
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+}
+
+.cortex-attach-option:hover {
+  background: var(--background-modifier-hover);
+}
+
 /* ── Icon buttons ── */
 .cortex-icon-btn {
   display: flex !important;

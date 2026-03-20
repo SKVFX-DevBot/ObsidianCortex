@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, MarkdownRenderer, Notice, setIcon, TFile } from 'obsidian';
+import { ItemView, WorkspaceLeaf, MarkdownRenderer, Notice, setIcon, TFile, Modal, App } from 'obsidian';
 import { spawn } from 'child_process';
 import type CortexPlugin from '../main';
 import { spawnClaude, parseStreamOutput, killProcess, findClaudeBinary, PermissionDenial, PermissionMode } from './ClaudeProcess';
@@ -96,13 +96,14 @@ export class ClaudeView extends ItemView {
   private historyIndex: number = -1;
   private inputDraft: string = '';
   private activeProc: ReturnType<typeof spawnClaude> | null = null;
-  private pendingContexts: Array<{ text: string; source: string; pinned: boolean }> = [];
+  private pendingContexts: Array<{ text: string; source: string; pinned: boolean; type?: 'text' | 'url' }> = [];
   private pendingContextZone: HTMLElement;
   /** Overrides settings.permissionMode for the current session only. Cleared on new session. */
   private sessionPermissionOverride: PermissionMode | null = null;
   private atDropdownEl: HTMLElement;
   private atDropdownItems: TFile[] = [];
   private tokenGaugeEl: SVGElement;
+  private attachPopoverEl: HTMLElement;
   private sessionContextTokens = 0;
   static readonly CONTEXT_WINDOW = 200_000;
   private atDropdownIndex = -1;
@@ -158,6 +159,21 @@ export class ClaudeView extends ItemView {
     this.atDropdownEl = inputArea.createDiv({ cls: 'cortex-at-dropdown' });
     this.atDropdownEl.style.display = 'none';
 
+    this.attachPopoverEl = inputArea.createDiv({ cls: 'cortex-attach-popover' });
+    this.attachPopoverEl.style.display = 'none';
+    const attachFileBtn = this.attachPopoverEl.createEl('button', { cls: 'cortex-attach-option', text: '📄  Attach file' });
+    attachFileBtn.addEventListener('mousedown', (e) => { e.preventDefault(); this.closeAttachPopover(); this.openFilePicker(); });
+    const attachUrlBtn = this.attachPopoverEl.createEl('button', { cls: 'cortex-attach-option', text: '🔗  URL' });
+    attachUrlBtn.addEventListener('mousedown', (e) => { e.preventDefault(); this.closeAttachPopover(); new AttachUrlModal(this.app, (url) => this.attachUrl(url)).open(); });
+    const attachAtBtn = this.attachPopoverEl.createEl('button', { cls: 'cortex-attach-option', text: '@ Add note' });
+    attachAtBtn.addEventListener('mousedown', (e) => {
+      e.preventDefault(); this.closeAttachPopover();
+      this.inputEl.focus();
+      const pos = this.inputEl.selectionStart ?? this.inputEl.value.length;
+      this.inputEl.setRangeText('@', pos, pos, 'end');
+      this.inputEl.dispatchEvent(new Event('input'));
+    });
+
     this.pendingContextZone = inputArea.createDiv({ cls: 'cortex-pending-context' });
     this.pendingContextZone.style.display = 'none';
 
@@ -170,8 +186,8 @@ export class ClaudeView extends ItemView {
 
     const attachBtn = inputToolbar.createEl('button', { cls: 'cortex-icon-btn cortex-input-toolbar-btn' });
     setIcon(attachBtn, 'paperclip');
-    attachBtn.title = 'Attach file (coming soon)';
-    attachBtn.disabled = true;
+    attachBtn.title = 'Attach file or URL';
+    attachBtn.addEventListener('click', () => this.toggleAttachPopover(attachBtn));
 
     const slashBtn = inputToolbar.createEl('button', { cls: 'cortex-icon-btn cortex-input-toolbar-btn' });
     setIcon(slashBtn, 'slash');
@@ -505,7 +521,9 @@ export class ClaudeView extends ItemView {
     let finalPrompt = prompt;
     if (this.pendingContexts.length > 0) {
       const contextBlock = this.pendingContexts
-        .map(c => `**[Context from ${c.source}]**\n${c.text}`)
+        .map(c => c.type === 'url'
+          ? `**[URL: ${c.text}]**`
+          : `**[Context from ${c.source}]**\n${c.text}`)
         .join('\n\n');
       finalPrompt = `${contextBlock}\n\n${prompt}`;
       this.pendingContexts = this.pendingContexts.filter(c => c.pinned);
@@ -1029,10 +1047,89 @@ export class ClaudeView extends ItemView {
     proc.on('error', (err) => new Notice(`Cortex: compaction failed — ${err.message}`));
   }
 
+  private attachClickOutside: ((e: MouseEvent) => void) | null = null;
+
+  private toggleAttachPopover(anchorBtn: HTMLElement) {
+    const showing = this.attachPopoverEl.style.display !== 'none';
+    if (showing) { this.closeAttachPopover(); return; }
+    this.attachPopoverEl.style.display = 'flex';
+    anchorBtn.classList.add('is-active');
+    // Close on any click outside the popover or anchor
+    this.attachClickOutside = (e: MouseEvent) => {
+      if (!this.attachPopoverEl.contains(e.target as Node) && e.target !== anchorBtn) {
+        this.closeAttachPopover();
+      }
+    };
+    setTimeout(() => document.addEventListener('click', this.attachClickOutside!), 0);
+  }
+
+  private closeAttachPopover() {
+    this.attachPopoverEl.style.display = 'none';
+    this.attachPopoverEl.closest('.cortex-input-area')
+      ?.querySelector('.cortex-icon-btn.is-active')
+      ?.classList.remove('is-active');
+    if (this.attachClickOutside) {
+      document.removeEventListener('click', this.attachClickOutside);
+      this.attachClickOutside = null;
+    }
+  }
+
+  private openFilePicker() {
+    const TEXT_EXTS = new Set(['txt','md','fountain','js','ts','jsx','tsx','json','css','html','xml','csv','yaml','yml','py','rb','go','rs','java','c','cpp','h','sh','bat','ps1']);
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.onchange = async () => {
+      const f = input.files?.[0];
+      if (!f) return;
+      const path: string = (f as any).path ?? f.name;
+      const ext = f.name.split('.').pop()?.toLowerCase() ?? '';
+      let text: string;
+      if (TEXT_EXTS.has(ext)) {
+        text = await f.text();
+      } else {
+        text = path; // Claude can use its Read tool for binary files
+      }
+      this.pendingContexts.push({ text, source: f.name, pinned: false });
+      this.renderContextZone();
+      this.inputEl.focus();
+    };
+    input.click();
+  }
+
+  private attachUrl(url: string) {
+    const label = url.replace(/^https?:\/\//, '').split('/')[0];
+    this.pendingContexts.push({ text: url, source: label, pinned: false, type: 'url' });
+    this.renderContextZone();
+    this.inputEl.focus();
+  }
+
   private appendMessage(role: 'user' | 'assistant' | 'system', text: string): HTMLElement {
     const el = this.messagesEl.createDiv({ cls: `cortex-message cortex-${role}` });
     el.setText(text);
     this.scrollToBottom();
     return el;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Attach modals
+// ---------------------------------------------------------------------------
+
+class AttachUrlModal extends Modal {
+  constructor(app: App, private onSubmit: (url: string) => void) {
+    super(app);
+  }
+  onOpen() {
+    this.titleEl.setText('Attach URL');
+    const input = this.contentEl.createEl('input', {
+      cls: 'cortex-attach-url-input',
+      attr: { type: 'text', placeholder: 'https://…', style: 'width:100%;box-sizing:border-box;' },
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { const v = input.value.trim(); if (v) { this.onSubmit(v); this.close(); } }
+      if (e.key === 'Escape') this.close();
+    });
+    setTimeout(() => input.focus(), 50);
+  }
+  onClose() { this.contentEl.empty(); }
 }

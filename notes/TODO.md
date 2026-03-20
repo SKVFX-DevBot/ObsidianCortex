@@ -6,8 +6,8 @@ TODO
 ### Features — near term
 - [ ] #43 Session cost display: per-response token count line in chat + resume savings indicator (context gauge shipped; full display still open)
 - [ ] #47 UI Bridge: run-command action with allowlist (safe Obsidian command execution)
-- [ ] Session-scoped pins: add a 📌 pin button next to the × on pending context items so pinned items survive send and stay in the stack for every subsequent message (see #16)
-- [ ] Attachment button: open up the paperclip to add files, URLs, and other content to the context stack (currently stubbed/disabled)
+- [x] Session-scoped pins: add a 📌 pin button next to the × on pending context items so pinned items survive send and stay in the stack for every subsequent message (see #16)
+- [x] Attachment button: open up the paperclip to add files, URLs, and other content to the context stack (currently stubbed/disabled)
 - [ ] #19 Compaction detection and user notification (manual compact via gauge click shipped; auto-detection still open)
 - [ ] #20 Configurable session storage location
 - [ ] #22 Setting: re-inject context on every turn (not just session start)
