@@ -12,7 +12,7 @@ TODO
 - [ ] #20 Configurable session storage location
 - [ ] #22 Setting: re-inject context on every turn (not just session start)
 - [ ] #10 Inline content generation (generate text at cursor in active note via tag/marker)
-- [ ] #29 Image/PDF support (paste/attach images and PDFs into context)
+- [ ] #29 Image/PDF support (attach button handles files by path; inline paste/preview not yet supported)
 
 ### Features — blocked (architectural)
 - [ ] #48 FrontmatterGuard: write protection and read exclusion (`readonly`, `context: never`) — blocked until Claude Code supports per-tool-call approval in print mode
