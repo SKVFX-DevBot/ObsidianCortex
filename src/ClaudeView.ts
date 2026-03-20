@@ -96,7 +96,7 @@ export class ClaudeView extends ItemView {
   private historyIndex: number = -1;
   private inputDraft: string = '';
   private activeProc: ReturnType<typeof spawnClaude> | null = null;
-  private pendingContexts: Array<{ text: string; source: string }> = [];
+  private pendingContexts: Array<{ text: string; source: string; pinned: boolean }> = [];
   private pendingContextZone: HTMLElement;
   /** Overrides settings.permissionMode for the current session only. Cleared on new session. */
   private sessionPermissionOverride: PermissionMode | null = null;
@@ -306,6 +306,8 @@ export class ClaudeView extends ItemView {
     this.sessionPermissionOverride = null;
     this.sessionContextTokens = 0;
     this.tokenGaugeEl.style.display = 'none';
+    this.pendingContexts = [];
+    this.renderContextZone();
     const vaultRoot = (this.app.vault.adapter as any).basePath;
     const now = new Date().toISOString();
     const sessionId = now.replace(/[:.]/g, '-');
@@ -401,27 +403,8 @@ export class ClaudeView extends ItemView {
   }
 
   injectSelectionContext(selection: string, sourceName: string) {
-    const entry = { text: selection, source: sourceName };
-    this.pendingContexts.push(entry);
-
-    // Append a row to the attachment bar (shown above the textarea)
-    const zone = this.pendingContextZone;
-    zone.style.display = 'flex';
-
-    const row = zone.createDiv({ cls: 'cortex-pending-context-row' });
-    const preview = selection.length > 80 ? selection.substring(0, 80) + '…' : selection;
-    row.createSpan({ cls: 'cortex-pending-context-label', text: `📎 ${sourceName}: ` });
-    row.createSpan({ cls: 'cortex-pending-context-preview', text: preview });
-
-    const clearBtn = row.createEl('button', { cls: 'cortex-context-clear', text: '×' });
-    clearBtn.title = 'Remove';
-    clearBtn.addEventListener('click', () => {
-      const idx = this.pendingContexts.indexOf(entry);
-      if (idx !== -1) this.pendingContexts.splice(idx, 1);
-      row.remove();
-      if (this.pendingContexts.length === 0) zone.style.display = 'none';
-    });
-
+    this.pendingContexts.push({ text: selection, source: sourceName, pinned: false });
+    this.renderContextZone();
     this.inputEl.focus();
   }
 
@@ -525,9 +508,8 @@ export class ClaudeView extends ItemView {
         .map(c => `**[Context from ${c.source}]**\n${c.text}`)
         .join('\n\n');
       finalPrompt = `${contextBlock}\n\n${prompt}`;
-      this.pendingContexts = [];
-      this.pendingContextZone.empty();
-      this.pendingContextZone.style.display = 'none';
+      this.pendingContexts = this.pendingContexts.filter(c => c.pinned);
+      this.renderContextZone();
     }
 
     if (isNewSession) {
@@ -976,6 +958,29 @@ export class ClaudeView extends ItemView {
     this.atDropdownEl.style.display = 'none';
     this.atDropdownItems = [];
     this.atDropdownIndex = -1;
+  }
+
+  private renderContextZone() {
+    const zone = this.pendingContextZone;
+    zone.empty();
+    if (this.pendingContexts.length === 0) { zone.style.display = 'none'; return; }
+    zone.style.display = 'flex';
+    for (const entry of this.pendingContexts) {
+      const row = zone.createDiv({ cls: 'cortex-pending-context-row' + (entry.pinned ? ' cortex-context-pinned' : '') });
+      const preview = entry.text.length > 80 ? entry.text.substring(0, 80) + '…' : entry.text;
+      row.createSpan({ cls: 'cortex-pending-context-label', text: `📎 ${entry.source}: ` });
+      row.createSpan({ cls: 'cortex-pending-context-preview', text: preview });
+      const pinBtn = row.createEl('button', { cls: 'cortex-context-pin' });
+      setIcon(pinBtn, entry.pinned ? 'pin-off' : 'pin');
+      pinBtn.title = entry.pinned ? 'Unpin (remove after send)' : 'Pin (keep after send)';
+      pinBtn.addEventListener('click', () => { entry.pinned = !entry.pinned; this.renderContextZone(); });
+      const clearBtn = row.createEl('button', { cls: 'cortex-context-clear', text: '×' });
+      clearBtn.title = 'Remove';
+      clearBtn.addEventListener('click', () => {
+        this.pendingContexts.splice(this.pendingContexts.indexOf(entry), 1);
+        this.renderContextZone();
+      });
+    }
   }
 
   private scrollToBottom() {

@@ -652,6 +652,31 @@
   flex: 1;
 }
 
+.cortex-context-pin {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0 2px;
+  line-height: 1;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.cortex-context-pin:hover {
+  color: var(--color-accent);
+}
+
+.cortex-context-pinned .cortex-context-pin {
+  color: var(--color-accent);
+}
+
+.cortex-context-pinned {
+  border-left: 2px solid var(--color-accent);
+  padding-left: 4px;
+}
+
 .cortex-context-clear {
   background: none;
   border: none;
