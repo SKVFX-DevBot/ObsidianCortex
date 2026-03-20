@@ -72,6 +72,8 @@ Most Obsidian AI plugins are chatbots — text in, text out, no file access. Oth
 | Configurable safety modes              | **Yes** | No              | Yes      | No           |
 | Required API key                       | **No**  | Yes ($14.99/mo) | Optional | No           |
 
+**Already using Claude Code in a terminal?** Cortex uses the same binary — no new setup, no new costs. What you gain is the integration layer: automatic context and memory management, Obsidian UI control, and a session history that travels with your vault. The terminal stays available for everything else.
+
 ---
 ## Features
 ### A context stack built for how you actually work
