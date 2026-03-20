@@ -25,6 +25,8 @@ export interface CortexSettings {
   logVerbosity: 'normal' | 'verbose';
   /** Comma-separated file extensions included in @-mention search. */
   atMentionExtensions: string;
+  /** Inject all visible files when Obsidian is in split-pane view. */
+  injectSplitPaneFiles: boolean;
 }
 
 export const DEFAULT_SETTINGS: CortexSettings = {
@@ -41,6 +43,7 @@ export const DEFAULT_SETTINGS: CortexSettings = {
   logFilePath: '_cortex-debug.log',
   logVerbosity: 'normal',
   atMentionExtensions: 'md, pdf, fountain, txt',
+  injectSplitPaneFiles: true,
 };
 
 export class CortexSettingsTab extends PluginSettingTab {
@@ -104,6 +107,18 @@ export class CortexSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.atMentionExtensions)
           .onChange(async (value) => {
             this.plugin.settings.atMentionExtensions = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Inject split-pane files as context')
+      .setDesc('When Obsidian is in split-pane view, include all visible files in the active note context. In stacked tabs, only the focused note is included.')
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.injectSplitPaneFiles)
+          .onChange(async (value) => {
+            this.plugin.settings.injectSplitPaneFiles = value;
             await this.plugin.saveSettings();
           })
       );
