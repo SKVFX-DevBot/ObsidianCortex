@@ -70,6 +70,30 @@
   flex: 1;
 }
 
+.cortex-token-gauge {
+  flex-shrink: 0;
+  margin: 0 4px;
+  opacity: 0.7;
+  cursor: pointer;
+}
+.cortex-gauge-track {
+  fill: none;
+  stroke: var(--text-faint);
+  stroke-width: 2.5;
+}
+.cortex-gauge-arc {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 9px 9px;
+  transition: stroke-dashoffset 0.4s ease, stroke 0.4s ease;
+}
+.cortex-gauge-low  { stroke: var(--color-green); }
+.cortex-gauge-mid  { stroke: var(--color-yellow); }
+.cortex-gauge-high { stroke: var(--color-orange); }
+.cortex-gauge-full { stroke: var(--color-red); }
+
 .cortex-input-toolbar-btn {
   opacity: 0.4;
 }

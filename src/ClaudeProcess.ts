@@ -168,11 +168,18 @@ export function killProcess(proc: ChildProcess): void {
 // Stream-JSON parsing
 // ---------------------------------------------------------------------------
 
+export interface TokenUsage {
+  inputTokens: number;
+  cacheReadTokens: number;
+  outputTokens: number;
+}
+
 export interface StreamCallbacks {
   onText: (delta: string) => void;
   onAction: (line: string) => void;
   onToolCall: (tool: string, input: unknown) => void;
   onPermissionDenied: (denials: PermissionDenial[]) => void;
+  onUsage: (usage: TokenUsage) => void;
   onDone: (sessionId?: string) => void;
   onError: (err: string) => void;
 }
@@ -222,8 +229,16 @@ function handleMessage(
       if (msg.session_id) setSessionId(msg.session_id as string);
       break;
     case 'assistant': {
-      // Full message format: {type:'assistant', message:{content:[{type:'text',text:'...'}]}}
+      // Full message format: {type:'assistant', message:{content:[{type:'text',text:'...'}], usage:{...}}}
       const message = msg.message as Record<string, unknown> | undefined;
+      const rawUsage = message?.usage as Record<string, number> | undefined;
+      if (rawUsage) {
+        cb.onUsage({
+          inputTokens: rawUsage.input_tokens ?? 0,
+          cacheReadTokens: rawUsage.cache_read_input_tokens ?? 0,
+          outputTokens: rawUsage.output_tokens ?? 0,
+        });
+      }
       const content = message?.content as Array<Record<string, unknown>> | undefined;
       if (content) {
         for (const block of content) {

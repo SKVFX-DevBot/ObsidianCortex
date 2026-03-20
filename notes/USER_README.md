@@ -97,6 +97,8 @@ Non-Markdown files (e.g. `.fountain`, `.txt`) show their extension next to the f
 
 Highlight any text in an open note, then run **Cortex: Send selection as context** from the Command Palette (or bind it to a hotkey). The selected text is attached as a labeled snippet. You can attach multiple selections and @-mentions at once — they all send together with your next message.
 
+A **context gauge** (ring icon) appears in the input bar after your first message — hover to see how much of the session's 200K token context window remains, and click to manually compact the session history if it's filling up.
+
 ### Tool call visibility
 
 While Claude is working, tool calls appear above the response bubble — you can see in real time what Claude is reading, writing, or searching. When the response completes, the tool list collapses to a single toggle line to keep the chat readable. Click it to expand or collapse.

@@ -102,6 +102,9 @@ export class ClaudeView extends ItemView {
   private sessionPermissionOverride: PermissionMode | null = null;
   private atDropdownEl: HTMLElement;
   private atDropdownItems: TFile[] = [];
+  private tokenGaugeEl: SVGElement;
+  private sessionContextTokens = 0;
+  static readonly CONTEXT_WINDOW = 200_000;
   private atDropdownIndex = -1;
 
   constructor(leaf: WorkspaceLeaf, plugin: CortexPlugin) {
@@ -176,6 +179,29 @@ export class ClaudeView extends ItemView {
     slashBtn.disabled = true;
 
     inputToolbar.createDiv({ cls: 'cortex-input-toolbar-spacer' });
+
+    // Token gauge — SVG ring showing context window usage
+    const NS = 'http://www.w3.org/2000/svg';
+    const R = 7, C = R * 2 * Math.PI;
+    const svg = document.createElementNS(NS, 'svg') as SVGElement;
+    svg.setAttribute('width', '18'); svg.setAttribute('height', '18');
+    svg.setAttribute('viewBox', '0 0 18 18');
+    svg.classList.add('cortex-token-gauge');
+    const svgTitle = document.createElementNS(NS, 'title');
+    svg.appendChild(svgTitle);
+    const track = document.createElementNS(NS, 'circle');
+    track.setAttribute('cx', '9'); track.setAttribute('cy', '9'); track.setAttribute('r', String(R));
+    track.classList.add('cortex-gauge-track');
+    const arc = document.createElementNS(NS, 'circle');
+    arc.setAttribute('cx', '9'); arc.setAttribute('cy', '9'); arc.setAttribute('r', String(R));
+    arc.classList.add('cortex-gauge-arc');
+    arc.setAttribute('stroke-dasharray', String(C));
+    arc.setAttribute('stroke-dashoffset', String(C));
+    svg.appendChild(track); svg.appendChild(arc);
+    svg.addEventListener('click', () => this.compactSession());
+    svg.style.display = 'none';
+    inputToolbar.appendChild(svg);
+    this.tokenGaugeEl = svg;
 
     this.sendBtn = inputToolbar.createEl('button', { cls: 'cortex-icon-btn cortex-send' });
     setIcon(this.sendBtn, 'arrow-up');
@@ -278,6 +304,8 @@ export class ClaudeView extends ItemView {
 
   startNewSession() {
     this.sessionPermissionOverride = null;
+    this.sessionContextTokens = 0;
+    this.tokenGaugeEl.style.display = 'none';
     const vaultRoot = (this.app.vault.adapter as any).basePath;
     const now = new Date().toISOString();
     const sessionId = now.replace(/[:.]/g, '-');
@@ -655,6 +683,14 @@ export class ClaudeView extends ItemView {
         this.scrollToBottom();
         unlock();
       },
+      onUsage: (usage) => {
+        // context window = max of cache_read (full history) + new input + output
+        const total = Math.max(usage.cacheReadTokens, this.sessionContextTokens)
+          + usage.inputTokens + usage.outputTokens;
+        this.sessionContextTokens = total;
+        this.tokenGaugeEl.style.display = '';
+        this.updateTokenGauge(total);
+      },
       onError: (err) => {
         this.appendMessage('system', `stderr: ${err.trim()}`);
       },
@@ -939,6 +975,48 @@ export class ClaudeView extends ItemView {
 
   private scrollToBottom() {
     this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
+  }
+
+  private updateTokenGauge(tokens: number) {
+    const arc = this.tokenGaugeEl.querySelector('.cortex-gauge-arc') as SVGCircleElement | null;
+    if (!arc) return;
+    const R = 7, C = R * 2 * Math.PI;
+    const fraction = Math.min(tokens / ClaudeView.CONTEXT_WINDOW, 1);
+    arc.setAttribute('stroke-dashoffset', String(C * (1 - fraction)));
+    // Color shifts green → yellow → orange → red as context fills
+    const cls = fraction < 0.6 ? 'low' : fraction < 0.8 ? 'mid' : fraction < 0.95 ? 'high' : 'full';
+    arc.setAttribute('class', `cortex-gauge-arc cortex-gauge-${cls}`);
+    const remaining = Math.round((1 - fraction) * 100);
+    const label = tokens === 0
+      ? 'Context window empty. Click to compact.'
+      : `${remaining}% of context remaining before auto-compaction. Click to compact now.`;
+    this.tokenGaugeEl.setAttribute('aria-label', label);
+    const titleEl = this.tokenGaugeEl.querySelector('title');
+    if (titleEl) titleEl.textContent = label;
+  }
+
+  private compactSession() {
+    const sessionId = this.currentSessionId;
+    if (!sessionId) {
+      new Notice('Cortex: no active session to compact.');
+      return;
+    }
+    // Optimistic reset — update gauge immediately
+    this.sessionContextTokens = 0;
+    this.updateTokenGauge(0);
+    new Notice('Cortex: compacting session…');
+    const proc = spawnClaude({
+      binaryPath: this.plugin.claudeBinaryPath!,
+      prompt: '/compact',
+      vaultRoot: (this.app.vault.adapter as any).basePath,
+      env: this.plugin.shellEnv,
+      resumeSessionId: sessionId,
+      permissionMode: this.sessionPermissionOverride ?? this.plugin.settings.permissionMode,
+    });
+    // Drain stdout so the process doesn't stall on a full buffer
+    proc.stdout?.resume();
+    proc.on('close', () => new Notice('Cortex: session compacted.'));
+    proc.on('error', (err) => new Notice(`Cortex: compaction failed — ${err.message}`));
   }
 
   private appendMessage(role: 'user' | 'assistant' | 'system', text: string): HTMLElement {

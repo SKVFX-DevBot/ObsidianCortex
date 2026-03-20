@@ -269,6 +269,7 @@ describe('parseStreamOutput', () => {
         onAction: () => { /* tests don't exercise UI bridge */ },
         onToolCall: (name) => tools.push(name),
         onPermissionDenied: (d) => denials.push(...d),
+        onUsage: () => { /* not tested here */ },
         onDone: (id) => { sessionId = id; resolve({ texts, tools, denials, sessionId, errors }); },
         onError: (e) => errors.push(e),
       });

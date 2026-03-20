@@ -106,6 +106,7 @@ export class ContextGenerationModal extends Modal {
       onAction: () => { /* background — discard UI actions */ },
       onToolCall: (tool) => { log('ContextGenerationModal: tool call:', tool); },
       onPermissionDenied: () => { /* background generation — denials not surfaced */ },
+      onUsage: () => { /* background generation — usage not surfaced */ },
       onDone: () => {
         const exists = this.app.vault.getFileByPath(this.contextFilePath);
         if (exists) {
