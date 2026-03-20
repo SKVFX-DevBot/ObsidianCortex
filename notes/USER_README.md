@@ -156,21 +156,38 @@ The path of the currently open note is automatically prepended to every message 
 
 ### 5. Per-note Frontmatter Context
 
-You can add a `claude` block to any note's frontmatter to control how Cortex treats that file. Add these as flat properties (Obsidian displays them cleanly in the Properties panel):
-
-```yaml
----
-cortex-context: always
-cortex-instructions: "This is the canonical taxonomy — suggest changes but never apply them directly."
----
-```
+You can add Cortex properties to any note's frontmatter to control how Claude treats that file. Obsidian displays them cleanly in the Properties panel.
 
 | Property | Value | Effect |
 |---|---|---|
 | `cortex-context` | `always` | Full note content injected at the start of every new session |
 | `cortex-instructions` | any string | Instruction injected at session start telling Claude how to treat this file |
 
-Both properties can be used together or separately. `cortex-context: always` is useful for style guides, project briefs, or any reference note you always want Claude to have. `cortex-instructions` is useful for notes that need special handling — e.g. "never reformat this file" or "always preserve the original structure."
+Both properties are independent — use either or both.
+
+**Pin a note to every session** (e.g. a project brief, style guide, or reference):
+```yaml
+---
+cortex-context: always
+---
+```
+
+**Give Claude standing instructions for a specific file** (e.g. formatting rules, tone, handling):
+```yaml
+---
+cortex-instructions: "Always write in present tense and keep bullet points under 10 words."
+---
+```
+
+Both together:
+```yaml
+---
+cortex-context: always
+cortex-instructions: "This is the team writing guide — apply its rules to any note you edit."
+---
+```
+
+> **Partial file protection:** You can use `cortex-instructions` to tell Claude not to modify a file — e.g. `"Read this file for reference only. Do not edit it."` This works well in practice but is convention, not enforcement. Claude is instructed not to write, but there is no infrastructure-level block if it misunderstands or loses track mid-task. For truly critical files, keep a backup or use your vault's git history as a safety net.
 
 ### 6. Autonomous Memory Instruction
 
