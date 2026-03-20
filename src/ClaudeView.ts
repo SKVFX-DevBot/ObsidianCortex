@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, MarkdownRenderer, Notice, setIcon } from 'obsidian';
+import { ItemView, WorkspaceLeaf, MarkdownRenderer, Notice, setIcon, TFile } from 'obsidian';
 import { spawn } from 'child_process';
 import type CortexPlugin from '../main';
 import { spawnClaude, parseStreamOutput, killProcess, findClaudeBinary } from './ClaudeProcess';
@@ -98,6 +98,9 @@ export class ClaudeView extends ItemView {
   private activeProc: ReturnType<typeof spawnClaude> | null = null;
   private pendingContexts: Array<{ text: string; source: string }> = [];
   private pendingContextZone: HTMLElement;
+  private atDropdownEl: HTMLElement;
+  private atDropdownItems: TFile[] = [];
+  private atDropdownIndex = -1;
 
   constructor(leaf: WorkspaceLeaf, plugin: CortexPlugin) {
     super(leaf);
@@ -147,6 +150,9 @@ export class ClaudeView extends ItemView {
 
     const inputArea = root.createDiv({ cls: 'cortex-input-area' });
 
+    this.atDropdownEl = inputArea.createDiv({ cls: 'cortex-at-dropdown' });
+    this.atDropdownEl.style.display = 'none';
+
     this.pendingContextZone = inputArea.createDiv({ cls: 'cortex-pending-context' });
     this.pendingContextZone.style.display = 'none';
 
@@ -180,7 +186,22 @@ export class ClaudeView extends ItemView {
         this.handleSend();
       }
     });
+    this.inputEl.addEventListener('input', () => this.handleAtMention());
+
+    this.inputEl.addEventListener('blur', () => {
+      // Delay so mousedown on a dropdown item fires before the dropdown hides
+      setTimeout(() => this.atDropdownHide(), 150);
+    });
+
     this.inputEl.addEventListener('keydown', (e) => {
+      // Dropdown navigation takes priority over everything else
+      if (this.atDropdownEl.style.display !== 'none') {
+        if (e.key === 'ArrowDown') { e.preventDefault(); this.atDropdownNav(1); return; }
+        if (e.key === 'ArrowUp')   { e.preventDefault(); this.atDropdownNav(-1); return; }
+        if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); this.atDropdownSelect(); return; }
+        if (e.key === 'Escape')    { this.atDropdownHide(); return; }
+      }
+
       if (e.key === 'Enter' && !e.shiftKey && this.plugin.settings.sendOnEnter) {
         e.preventDefault();
         this.handleSend();
@@ -785,6 +806,78 @@ export class ClaudeView extends ItemView {
         setTimeout(() => copyBtn.setText('Copy'), 2000);
       });
     });
+  }
+
+  private handleAtMention() {
+    const { value, selectionStart } = this.inputEl;
+    if (selectionStart === null) { this.atDropdownHide(); return; }
+
+    const before = value.substring(0, selectionStart);
+    const match = before.match(/@(\S*)$/);
+    if (!match) { this.atDropdownHide(); return; }
+
+    const query = match[1].toLowerCase();
+    const files = this.app.vault.getMarkdownFiles()
+      .filter(f => !query || f.basename.toLowerCase().includes(query))
+      .sort((a, b) => a.basename.localeCompare(b.basename))
+      .slice(0, 8);
+
+    if (files.length === 0) { this.atDropdownHide(); return; }
+
+    this.atDropdownItems = files;
+    if (this.atDropdownIndex < 0 || this.atDropdownIndex >= files.length) {
+      this.atDropdownIndex = 0;
+    }
+    this.atDropdownRender();
+  }
+
+  private atDropdownRender() {
+    const el = this.atDropdownEl;
+    el.empty();
+    el.style.display = 'block';
+    this.atDropdownItems.forEach((file, i) => {
+      const item = el.createDiv({ cls: 'cortex-at-item' + (i === this.atDropdownIndex ? ' cortex-at-item-active' : '') });
+      item.createSpan({ cls: 'cortex-at-item-name', text: file.basename });
+      const parentPath = file.parent?.path;
+      if (parentPath && parentPath !== '/') {
+        item.createSpan({ cls: 'cortex-at-item-path', text: parentPath });
+      }
+      item.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // prevent textarea blur before select fires
+        this.atDropdownIndex = i;
+        this.atDropdownSelect();
+      });
+    });
+  }
+
+  private atDropdownNav(dir: number) {
+    this.atDropdownIndex = Math.max(0, Math.min(this.atDropdownItems.length - 1, this.atDropdownIndex + dir));
+    this.atDropdownRender();
+  }
+
+  private async atDropdownSelect() {
+    const file = this.atDropdownItems[this.atDropdownIndex];
+    if (!file) return;
+    this.atDropdownHide();
+
+    // Remove @query from textarea and restore cursor
+    const { value, selectionStart } = this.inputEl;
+    if (selectionStart !== null) {
+      const before = value.substring(0, selectionStart);
+      const after = value.substring(selectionStart);
+      const newBefore = before.replace(/@\S*$/, '');
+      this.inputEl.value = newBefore + after;
+      this.inputEl.setSelectionRange(newBefore.length, newBefore.length);
+    }
+
+    const content = await this.app.vault.read(file);
+    this.injectSelectionContext(content, file.basename);
+  }
+
+  private atDropdownHide() {
+    this.atDropdownEl.style.display = 'none';
+    this.atDropdownItems = [];
+    this.atDropdownIndex = -1;
   }
 
   private scrollToBottom() {

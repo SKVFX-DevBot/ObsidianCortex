@@ -502,6 +502,51 @@
   color: var(--text-muted);
 }
 
+/* ── @-mention autocomplete dropdown ── */
+.cortex-input-area {
+  position: relative;
+}
+
+.cortex-at-dropdown {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px 6px 0 0;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.cortex-at-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.cortex-at-item:hover,
+.cortex-at-item-active {
+  background: var(--background-modifier-hover);
+}
+
+.cortex-at-item-name {
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+.cortex-at-item-path {
+  font-size: 0.75em;
+  color: var(--text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ── Pending selection context bar (above textarea) ── */
 .cortex-pending-context {
   display: flex;
