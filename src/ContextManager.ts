@@ -41,7 +41,12 @@ export class ContextManager {
       `Example: after creating a new note, emit:\n` +
       `@@CORTEX_ACTION {"action": "open-file", "path": "Notes/My New Note.md"}\n\n` +
       `Use these actions proactively when they improve the user's experience — ` +
-      `especially \`open-file\` after creating content and \`show-notice\` to confirm completed tasks.`;
+      `especially \`open-file\` after creating content and \`show-notice\` to confirm completed tasks.\n\n` +
+      `Fallback: the UI bridge is a convenience layer — it does not define the ceiling of what is possible. ` +
+      `If no UI bridge action covers what the user needs, explore the full solution space before giving up: ` +
+      `direct file edits, Obsidian config files (\`.obsidian/*.json\`, \`.obsidian/snippets/\`, \`.obsidian/plugins/*/data.json\`), ` +
+      `CSS snippets, shell commands (if permission mode allows), or any other file-based approach. ` +
+      `The vault file system is always available.`;
     parts.push(orientation);
     layerBreakdown['orientation'] = {
       text: orientation,
