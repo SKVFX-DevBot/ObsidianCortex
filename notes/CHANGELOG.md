@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.0](https://github.com/ScottKirvan/Cortex/compare/v1.1.0...v1.2.0) (2026-03-20)
+
+
+### Features
+
+* multiple notes support ([98e8e10](https://github.com/ScottKirvan/Cortex/commit/98e8e104132af1daaba5976f88dfe43f44388634))
+* split-pane and side-by-side note editing support - configurable ([a280e42](https://github.com/ScottKirvan/Cortex/commit/a280e42f9b118f515f82bcd1cd33811f016a93c1))
+
+
+### Bug Fixes
+
+* regression fix for cortex giving up on being inventive when needed. ([b126eef](https://github.com/ScottKirvan/Cortex/commit/b126eef54cfcac757cba51050c2bb1c6e550008d))
+
 ## [1.1.0](https://github.com/ScottKirvan/Cortex/compare/v1.0.0...v1.1.0) (2026-03-20)
 
 
