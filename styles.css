@@ -599,6 +599,51 @@
   text-decoration: underline;
 }
 
+/* ── Command allowlist browser (settings) ── */
+.cortex-command-list {
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  margin: 4px 0 4px;
+}
+
+.cortex-command-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  cursor: pointer;
+}
+
+.cortex-command-row:last-child {
+  border-bottom: none;
+}
+
+.cortex-command-row:hover {
+  background: var(--background-modifier-hover);
+}
+
+.cortex-command-name {
+  font-size: var(--font-ui-small);
+  color: var(--text-normal);
+  cursor: pointer;
+}
+
+.cortex-command-empty {
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 10px;
+  margin: 0;
+}
+
+.cortex-command-count {
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+  margin: 0 0 16px;
+}
+
 /* ── @-mention autocomplete dropdown ── */
 .cortex-input-area {
   position: relative;

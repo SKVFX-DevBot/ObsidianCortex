@@ -9,6 +9,7 @@ export class ContextManager {
     private contextFilePath: string,
     private autonomousMemory: boolean = true,
     private vaultTreeDepth: number = 3,
+    private commandAllowlist: string[] = [],
   ) { }
 
   async buildSessionContext(): Promise<string> {
@@ -16,7 +17,7 @@ export class ContextManager {
     const layerBreakdown: Record<string, { text: string; chars: number; tokens: number }> = {};
 
     // Layer 0: System orientation (always injected)
-    const orientation =
+    let orientation =
       `## You are Cortex\n` +
       `You are an AI agent embedded inside Obsidian via the Cortex plugin. ` +
       `You are running as a Claude Code subprocess with full access to the user's Obsidian vault. ` +
@@ -47,6 +48,22 @@ export class ContextManager {
       `direct file edits, Obsidian config files (\`.obsidian/*.json\`, \`.obsidian/snippets/\`, \`.obsidian/plugins/*/data.json\`), ` +
       `CSS snippets, shell commands (if permission mode allows), or any other file-based approach. ` +
       `The vault file system is always available.`;
+
+    if (this.commandAllowlist.length > 0) {
+      const rows = this.commandAllowlist
+        .map(id => {
+          const name = (this.app as any).commands.commands[id]?.name ?? id;
+          return `| \`${name}\` | \`${id}\` |`;
+        })
+        .join('\n');
+      orientation +=
+        `\n\n## Allowed Obsidian commands\n` +
+        `You can run specific Obsidian commands using:\n` +
+        `@@CORTEX_ACTION {"action": "run-command", "commandId": "<id>"}\n\n` +
+        `Only these commands are permitted (others will be silently blocked):\n\n` +
+        `| Command | ID |\n|---|---|\n${rows}`;
+    }
+
     parts.push(orientation);
     layerBreakdown['orientation'] = {
       text: orientation,

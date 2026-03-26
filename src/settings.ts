@@ -15,6 +15,8 @@ export interface CortexSettings {
   skipContextFilePrompt: boolean;
   /** Allow Claude to trigger Obsidian UI actions (open files, show notices, etc.) */
   uiBridgeEnabled: boolean;
+  /** Command IDs Claude is allowed to execute via the run-command UI Bridge action. */
+  commandAllowlist: string[];
   /** Which operations Claude is allowed to perform. */
   permissionMode: PermissionMode;
   /** Write a debug log file to the vault. */
@@ -40,6 +42,7 @@ export const DEFAULT_SETTINGS: CortexSettings = {
   vaultTreeDepth: 3,
   skipContextFilePrompt: false,
   uiBridgeEnabled: true,
+  commandAllowlist: [],
   permissionMode: 'standard',
   logEnabled: true,
   logFilePath: '_cortex-debug.log',
@@ -248,6 +251,69 @@ export class CortexSettingsTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+
+    // ── Command Allowlist ──────────────────────────────────────────────────
+    containerEl.createEl('h3', { text: 'Command Allowlist' });
+    containerEl.createEl('p', {
+      text: 'Obsidian commands Claude is allowed to run directly via the UI Bridge. ' +
+            'Search and check commands to enable them. If none are selected, Claude cannot run commands via the bridge.',
+      cls: 'setting-item-description',
+    });
+
+    let commandSearchQuery = '';
+    new Setting(containerEl)
+      .setName('Filter commands')
+      .addSearch(search =>
+        search
+          .setPlaceholder('Search by name or ID…')
+          .onChange(val => { commandSearchQuery = val; renderCommandList(); })
+      );
+
+    const commandListEl = containerEl.createDiv({ cls: 'cortex-command-list' });
+    const commandCountEl = containerEl.createEl('p', { cls: 'cortex-command-count' });
+
+    const allCommands = Object.values(
+      (this.app as any).commands.commands as Record<string, { id: string; name: string }>
+    ).sort((a, b) => a.name.localeCompare(b.name));
+
+    const renderCommandList = () => {
+      commandListEl.empty();
+      const q = commandSearchQuery.toLowerCase();
+      const filtered = q
+        ? allCommands.filter(c => c.name.toLowerCase().includes(q) || c.id.toLowerCase().includes(q))
+        : allCommands;
+
+      if (filtered.length === 0) {
+        commandListEl.createEl('p', { text: 'No commands match your search.', cls: 'cortex-command-empty' });
+      } else {
+        for (const cmd of filtered) {
+          const row = commandListEl.createDiv({ cls: 'cortex-command-row' });
+          const checkbox = row.createEl('input', { type: 'checkbox' });
+          checkbox.id = `cortex-cmd-${cmd.id}`;
+          checkbox.checked = this.plugin.settings.commandAllowlist.includes(cmd.id);
+          checkbox.addEventListener('change', async () => {
+            if (checkbox.checked) {
+              if (!this.plugin.settings.commandAllowlist.includes(cmd.id)) {
+                this.plugin.settings.commandAllowlist = [...this.plugin.settings.commandAllowlist, cmd.id];
+              }
+            } else {
+              this.plugin.settings.commandAllowlist = this.plugin.settings.commandAllowlist.filter(id => id !== cmd.id);
+            }
+            await this.plugin.saveSettings();
+            this.plugin.notifyAllowlistChanged(this.plugin.settings.commandAllowlist);
+            const count = this.plugin.settings.commandAllowlist.length;
+            commandCountEl.setText(count === 0 ? 'No commands enabled.' : `${count} command${count === 1 ? '' : 's'} enabled.`);
+          });
+          const label = row.createEl('label', { text: cmd.name, cls: 'cortex-command-name' });
+          label.htmlFor = `cortex-cmd-${cmd.id}`;
+        }
+      }
+
+      const count = this.plugin.settings.commandAllowlist.length;
+      commandCountEl.setText(count === 0 ? 'No commands enabled.' : `${count} command${count === 1 ? '' : 's'} enabled.`);
+    };
+
+    renderCommandList();
 
     // ── Logging ────────────────────────────────────────────────────────────
     containerEl.createEl('h3', { text: 'Logging' });

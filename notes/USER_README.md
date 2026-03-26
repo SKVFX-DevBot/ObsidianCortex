@@ -109,6 +109,19 @@ Highlight any text in an open note, then run **Cortex: Send selection as context
 
 A **context gauge** (ring icon) appears in the input bar after your first message — hover to see how much of the session's 200K token context window remains, and click to manually compact the session history if it's filling up.
 
+### Running Obsidian commands
+
+Claude can execute Obsidian commands directly — for example, opening today's daily note, triggering a Templater template, or refreshing a Dataview view — without you having to do it manually.
+
+This is disabled by default. To enable it, go to **Settings → Cortex → Command Allowlist** and check the commands you want Claude to be able to run. The list shows every command currently registered by Obsidian and your installed plugins, searchable by name. Claude is only told about — and only permitted to call — the commands you check. Unchecked commands are silently blocked even if Claude tries to call them.
+
+Once enabled, you can ask Claude things like:
+- "Open today's daily note"
+- "Refresh the Dataview on this page"
+- "Create a new note from my Project template"
+
+> **Note:** The command runs immediately when Claude emits it — there is no confirmation step. Only enable commands you are comfortable with Claude calling autonomously.
+
 ### Tool call visibility
 
 While Claude is working, tool calls appear above the response bubble — you can see in real time what Claude is reading, writing, or searching. When the response completes, the tool list collapses to a single toggle line to keep the chat readable. Click it to expand or collapse.
@@ -283,6 +296,7 @@ Open **Settings → Cortex** to configure:
 | Resume last session on startup | On                     | Automatically resume the most recent session when the Cortex panel opens.                                                                               |
 | Autonomous memory              | On                     | Claude will autonomously update the context file as it learns about your vault. Disable if you prefer to manage it manually or if your vault is shared. |
 | Permission mode                | Standard               | Controls which vault operations Claude is allowed to perform. See [Permissions](#permissions) below.                                                    |
+| Command Allowlist              | *(empty)*              | Obsidian commands Claude is allowed to run via the UI Bridge. Search and check commands in the list. Empty = run-command disabled.                       |
 | Enable debug log               | On                     | Write a debug log file to your vault. See [Logging](#logging) below.                                                                                    |
 | Log file path                  | `_cortex-debug.log`    | Vault-relative path for the log file. The file is appended to — delete it manually to start fresh.                                                      |
 | Log verbosity                  | Normal                 | Normal logs session events and errors. Verbose adds raw stream data and token breakdowns.                                                                |

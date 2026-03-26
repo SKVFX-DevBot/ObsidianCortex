@@ -100,6 +100,8 @@ export class ClaudeView extends ItemView {
   private pendingContextZone: HTMLElement;
   /** Overrides settings.permissionMode for the current session only. Cleared on new session. */
   private sessionPermissionOverride: PermissionMode | null = null;
+  /** Pending allowlist update to inject at the start of the next continuing-session turn. */
+  private pendingAllowlistUpdate: string | null = null;
   private atDropdownEl: HTMLElement;
   private atDropdownItems: TFile[] = [];
   private tokenGaugeEl: SVGElement;
@@ -424,6 +426,22 @@ export class ClaudeView extends ItemView {
     this.inputEl.focus();
   }
 
+  injectAllowlistUpdate(newAllowlist: string[]) {
+    if (newAllowlist.length === 0) {
+      this.pendingAllowlistUpdate =
+        '[System: The command allowlist was cleared. No Obsidian commands are currently available via run-command.]';
+    } else {
+      const rows = newAllowlist
+        .map(id => {
+          const name = (this.app as any).commands.commands[id]?.name ?? id;
+          return `| "${name}" | ${id} |`;
+        })
+        .join('\n');
+      this.pendingAllowlistUpdate =
+        `[System: The command allowlist was updated mid-session. Commands now available via run-command:\n${rows}\nOnly these commands are permitted.]`;
+    }
+  }
+
   private async loadSession(session: StoredSession) {
     this.placeholderSessionId = undefined;
     this.currentSessionId = session.claudeSessionId || undefined;
@@ -554,6 +572,7 @@ export class ClaudeView extends ItemView {
         this.plugin.settings.contextFilePath,
         this.plugin.settings.autonomousMemory,
         this.plugin.settings.vaultTreeDepth,
+        this.plugin.settings.commandAllowlist,
       );
       const context = await ctx.buildSessionContext();
       finalPrompt = ctx.injectContext(context, prompt);
@@ -567,6 +586,10 @@ export class ClaudeView extends ItemView {
         log(`[NEW SESSION] No context injected, Prompt: ~${promptTokens} tokens`);
       }
     } else {
+      if (this.pendingAllowlistUpdate) {
+        finalPrompt = `${this.pendingAllowlistUpdate}\n\n${finalPrompt}`;
+        this.pendingAllowlistUpdate = null;
+      }
       log(`[CONTINUE SESSION ${this.currentSessionId?.substring(0, 8)}] Prompt: ~${estimateTokens(finalPrompt)} tokens`);
     }
 
@@ -600,7 +623,7 @@ export class ClaudeView extends ItemView {
         if (this.plugin.settings.uiBridgeEnabled) {
           const { clean, actions } = extractActions(accumulated);
           accumulated = clean;
-          actions.forEach(a => executeAction(this.app, a));
+          actions.forEach(a => executeAction(this.app, a, this.plugin.settings.commandAllowlist));
         }
         assistantEl.setText(accumulated);
         this.scrollToBottom();
@@ -609,7 +632,7 @@ export class ClaudeView extends ItemView {
         if (this.plugin.settings.uiBridgeEnabled) {
           try {
             const { actions } = extractActions(line + '\n');
-            actions.forEach(a => executeAction(this.app, a));
+            actions.forEach(a => executeAction(this.app, a, this.plugin.settings.commandAllowlist));
           } catch { /* malformed — already logged in extractActions */ }
         }
       },

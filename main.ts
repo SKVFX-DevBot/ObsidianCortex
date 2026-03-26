@@ -287,6 +287,11 @@ export default class CortexPlugin extends Plugin {
     await this.saveData(this.settings);
   }
 
+  notifyAllowlistChanged(newAllowlist: string[]) {
+    const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_CLAUDE);
+    if (leaves.length) (leaves[0].view as ClaudeView).injectAllowlistUpdate(newAllowlist);
+  }
+
   reconfigureLogger() {
     const vaultRoot = (this.app.vault.adapter as any).basePath;
     initLogger(vaultRoot, {

@@ -36,8 +36,9 @@ export function extractActions(text: string): { clean: string; actions: CortexAc
 
 /**
  * Execute a single Cortex UI action via the Obsidian API.
+ * commandAllowlist gates the run-command action — only IDs in the list are permitted.
  */
-export async function executeAction(app: App, action: CortexAction): Promise<void> {
+export async function executeAction(app: App, action: CortexAction, commandAllowlist: string[] = []): Promise<void> {
   log('UIBridge: executing action:', action.action);
 
   switch (action.action) {
@@ -104,6 +105,21 @@ export async function executeAction(app: App, action: CortexAction): Promise<voi
       const tab = action.tab as string | undefined;
       (app as any).setting.open();
       if (tab) (app as any).setting.openTabById(tab);
+      break;
+    }
+
+    case 'run-command': {
+      const commandId = action.commandId as string;
+      if (!commandId) { warn('UIBridge: run-command — missing commandId'); break; }
+      if (!commandAllowlist.includes(commandId)) {
+        warn('UIBridge: run-command blocked — not in allowlist:', commandId);
+        const displayName = (app as any).commands.commands[commandId]?.name ?? commandId;
+        new Notice(`Cortex: Claude wanted to run "${displayName}" but it isn't in the Command Allowlist. Add it in Settings → Cortex to enable it.`, 8000);
+        break;
+      }
+      const executed = (app as any).commands.executeCommandById(commandId);
+      if (executed) log('UIBridge: run-command executed:', commandId);
+      else warn('UIBridge: run-command — command not found or failed:', commandId);
       break;
     }
 
