@@ -100,8 +100,8 @@ export class ClaudeView extends ItemView {
   private pendingContextZone: HTMLElement;
   /** Overrides settings.permissionMode for the current session only. Cleared on new session. */
   private sessionPermissionOverride: PermissionMode | null = null;
-  /** Pending allowlist update to inject at the start of the next continuing-session turn. */
-  private pendingAllowlistUpdate: string | null = null;
+  /** Pending system message to prepend to the next continuing-session turn (allowlist update, context refresh, etc.). */
+  private pendingSystemMessage: string | null = null;
   private atDropdownEl: HTMLElement;
   private atDropdownItems: TFile[] = [];
   private tokenGaugeEl: SVGElement;
@@ -428,7 +428,7 @@ export class ClaudeView extends ItemView {
 
   injectAllowlistUpdate(newAllowlist: string[]) {
     if (newAllowlist.length === 0) {
-      this.pendingAllowlistUpdate =
+      this.pendingSystemMessage =
         '[System: The command allowlist was cleared. No Obsidian commands are currently available via run-command.]';
     } else {
       const rows = newAllowlist
@@ -437,9 +437,43 @@ export class ClaudeView extends ItemView {
           return `| "${name}" | ${id} |`;
         })
         .join('\n');
-      this.pendingAllowlistUpdate =
+      this.pendingSystemMessage =
         `[System: The command allowlist was updated mid-session. Commands now available via run-command:\n${rows}\nOnly these commands are permitted.]`;
     }
+  }
+
+  async refreshSessionContext() {
+    if (!this.currentSessionId) {
+      this.appendMessage('system', 'No active session to refresh — context will be fully injected with your first message.');
+      return;
+    }
+
+    const parts: string[] = ['[System: Session context refreshed at user request. Current state:\n'];
+
+    const allowlist = this.plugin.settings.commandAllowlist;
+    if (allowlist.length > 0) {
+      const rows = allowlist
+        .map(id => {
+          const name = (this.app as any).commands.commands[id]?.name ?? id;
+          return `| "${name}" | ${id} |`;
+        })
+        .join('\n');
+      parts.push(`## Command allowlist\n${rows}\n`);
+    } else {
+      parts.push('## Command allowlist\nNo commands currently enabled via run-command.\n');
+    }
+
+    const contextFile = this.app.vault.getFileByPath(this.plugin.settings.contextFilePath);
+    if (contextFile) {
+      const content = await this.app.vault.read(contextFile);
+      if (content.trim()) {
+        parts.push(`## Vault context (${this.plugin.settings.contextFilePath})\n${content.trim()}\n`);
+      }
+    }
+
+    parts.push(']');
+    this.pendingSystemMessage = parts.join('\n');
+    this.appendMessage('system', 'Context refresh queued — will be sent with your next message.');
   }
 
   private async loadSession(session: StoredSession) {
@@ -586,9 +620,9 @@ export class ClaudeView extends ItemView {
         log(`[NEW SESSION] No context injected, Prompt: ~${promptTokens} tokens`);
       }
     } else {
-      if (this.pendingAllowlistUpdate) {
-        finalPrompt = `${this.pendingAllowlistUpdate}\n\n${finalPrompt}`;
-        this.pendingAllowlistUpdate = null;
+      if (this.pendingSystemMessage) {
+        finalPrompt = `${this.pendingSystemMessage}\n\n${finalPrompt}`;
+        this.pendingSystemMessage = null;
       }
       log(`[CONTINUE SESSION ${this.currentSessionId?.substring(0, 8)}] Prompt: ~${estimateTokens(finalPrompt)} tokens`);
     }

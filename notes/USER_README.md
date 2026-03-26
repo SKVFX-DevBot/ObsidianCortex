@@ -279,6 +279,7 @@ Cortex provides a full command palette for quick access to all features. Press *
 | **Cortex: Send selection as context** | `send-selection-to-cortex` | Highlight text in any note, then run this command to attach it as context for your next message. |
 | **Cortex: Focus chat input**    | `focus-cortex-input`         | Open the Cortex panel (if closed) and place the cursor in the chat input. Useful for binding to a hotkey. |
 | **Cortex: Open context file**   | `open-cortex-context-file`   | Open the context file (`_claude-context.md` by default) in Obsidian for editing. |
+| **Cortex: Refresh session context** | `refresh-cortex-context` | Re-inject the current context file and command allowlist into the active session. Useful if you've edited the context file, changed the allowlist, or added per-note frontmatter mid-session and want Claude to be aware immediately without starting a new session. The refresh is queued and sent with your next message. |
 | **Cortex: About Cortex**        | `show-cortex-about`          | Show the About panel with version info and links.                |
 
 ---

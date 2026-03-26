@@ -152,6 +152,19 @@ export default class CortexPlugin extends Plugin {
     });
 
     this.addCommand({
+      id: 'refresh-cortex-context',
+      name: 'Refresh session context',
+      callback: () => {
+        const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_CLAUDE);
+        if (leaves.length) (leaves[0].view as ClaudeView).refreshSessionContext();
+        else this.activateView().then(() => {
+          const l = this.app.workspace.getLeavesOfType(VIEW_TYPE_CLAUDE);
+          if (l.length) (l[0].view as ClaudeView).refreshSessionContext();
+        });
+      }
+    });
+
+    this.addCommand({
       id: 'show-cortex-about',
       name: 'About Cortex',
       callback: () => {
