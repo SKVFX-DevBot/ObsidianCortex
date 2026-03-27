@@ -17,6 +17,10 @@ export interface CortexSettings {
   uiBridgeEnabled: boolean;
   /** Command IDs Claude is allowed to execute via the run-command UI Bridge action. */
   commandAllowlist: string[];
+  /** Prompt when Claude tries a command not in the allowlist, offering a one-time allow or add-to-allowlist. */
+  confirmUnlistedCommands: boolean;
+  /** Command IDs permanently denied via "Deny + don't ask again". Allowlist takes precedence. */
+  commandDenylist: string[];
   /** Which operations Claude is allowed to perform. */
   permissionMode: PermissionMode;
   /** Write a debug log file to the vault. */
@@ -42,10 +46,12 @@ export const DEFAULT_SETTINGS: CortexSettings = {
   vaultTreeDepth: 3,
   skipContextFilePrompt: false,
   uiBridgeEnabled: true,
-  commandAllowlist: [],
+  commandAllowlist: ['switcher:open', 'daily-notes', 'editor:open-search'],
+  confirmUnlistedCommands: true,
+  commandDenylist: [],
   permissionMode: 'standard',
   logEnabled: true,
-  logFilePath: '_cortex-debug.log',
+  logFilePath: '.obsidian/plugins/cortex/cortex-debug.log',
   logVerbosity: 'normal',
   atMentionExtensions: 'md, pdf, fountain, txt',
   injectSplitPaneFiles: true,
@@ -115,6 +121,34 @@ export class CortexSettingsTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+
+    new Setting(containerEl)
+      .setName('Prompt for unlisted commands')
+      .setDesc('When Claude tries to run a command not in the allowlist, show a prompt offering a one-time allow or the option to add it to the allowlist. If off, unlisted commands are hard-blocked with a notice.')
+      .addToggle(toggle =>
+        toggle
+          .setValue(this.plugin.settings.confirmUnlistedCommands)
+          .onChange(async value => {
+            this.plugin.settings.confirmUnlistedCommands = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    if (this.plugin.settings.commandDenylist.length > 0) {
+      new Setting(containerEl)
+        .setName('Denied commands')
+        .setDesc(`${this.plugin.settings.commandDenylist.length} command${this.plugin.settings.commandDenylist.length === 1 ? '' : 's'} permanently denied. Add a denied command to the allowlist to re-enable it.`)
+        .addButton(btn =>
+          btn
+            .setButtonText('Clear denylist')
+            .setTooltip('Remove all permanent denials — commands will prompt again')
+            .onClick(async () => {
+              this.plugin.settings.commandDenylist = [];
+              await this.plugin.saveSettings();
+              this.display();
+            })
+        );
+    }
 
     new Setting(containerEl)
       .setName('@-mention file types')
@@ -276,9 +310,46 @@ export class CortexSettingsTab extends PluginSettingTab {
       (this.app as any).commands.commands as Record<string, { id: string; name: string }>
     ).sort((a, b) => a.name.localeCompare(b.name));
 
+    const updateCountText = () => {
+      const allCommandIds = new Set(allCommands.map(c => c.id));
+      const active = this.plugin.settings.commandAllowlist.filter(id => allCommandIds.has(id)).length;
+      const orphaned = this.plugin.settings.commandAllowlist.length - active;
+      if (this.plugin.settings.commandAllowlist.length === 0) {
+        commandCountEl.setText('No commands enabled.');
+      } else if (orphaned > 0) {
+        commandCountEl.setText(`${active} command${active === 1 ? '' : 's'} enabled, ${orphaned} not found (uncheck to remove).`);
+      } else {
+        commandCountEl.setText(`${active} command${active === 1 ? '' : 's'} enabled.`);
+      }
+    };
+
     const renderCommandList = () => {
       commandListEl.empty();
       const q = commandSearchQuery.toLowerCase();
+
+      // Show orphaned entries (stored IDs not in current command registry) when not filtering
+      if (!q) {
+        const allCommandIds = new Set(allCommands.map(c => c.id));
+        const orphaned = this.plugin.settings.commandAllowlist.filter(id => !allCommandIds.has(id));
+        for (const id of orphaned) {
+          const row = commandListEl.createDiv({ cls: 'cortex-command-row cortex-command-row--orphaned' });
+          const checkbox = row.createEl('input', { type: 'checkbox' });
+          checkbox.id = `cortex-cmd-orphan-${id}`;
+          checkbox.checked = true;
+          checkbox.addEventListener('change', async () => {
+            this.plugin.settings.commandAllowlist = this.plugin.settings.commandAllowlist.filter(x => x !== id);
+            await this.plugin.saveSettings();
+            this.plugin.notifyAllowlistChanged(this.plugin.settings.commandAllowlist);
+            renderCommandList();
+            updateCountText();
+          });
+          const label = row.createEl('label', { cls: 'cortex-command-name' });
+          label.htmlFor = `cortex-cmd-orphan-${id}`;
+          label.createEl('span', { text: id });
+          label.createEl('span', { text: ' — not found', cls: 'cortex-command-orphan-badge' });
+        }
+      }
+
       const filtered = q
         ? allCommands.filter(c => c.name.toLowerCase().includes(q) || c.id.toLowerCase().includes(q))
         : allCommands;
@@ -301,16 +372,14 @@ export class CortexSettingsTab extends PluginSettingTab {
             }
             await this.plugin.saveSettings();
             this.plugin.notifyAllowlistChanged(this.plugin.settings.commandAllowlist);
-            const count = this.plugin.settings.commandAllowlist.length;
-            commandCountEl.setText(count === 0 ? 'No commands enabled.' : `${count} command${count === 1 ? '' : 's'} enabled.`);
+            updateCountText();
           });
           const label = row.createEl('label', { text: cmd.name, cls: 'cortex-command-name' });
           label.htmlFor = `cortex-cmd-${cmd.id}`;
         }
       }
 
-      const count = this.plugin.settings.commandAllowlist.length;
-      commandCountEl.setText(count === 0 ? 'No commands enabled.' : `${count} command${count === 1 ? '' : 's'} enabled.`);
+      updateCountText();
     };
 
     renderCommandList();
@@ -333,10 +402,10 @@ export class CortexSettingsTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Log file path')
-      .setDesc('Vault-relative path for the log file.')
+      .setDesc('Vault-relative path for the log file. Defaults to the plugin folder so it stays out of your vault.')
       .addText((text) =>
         text
-          .setPlaceholder('_cortex-debug.log')
+          .setPlaceholder('.obsidian/plugins/cortex/cortex-debug.log')
           .setValue(this.plugin.settings.logFilePath)
           .onChange(async (value) => {
             this.plugin.settings.logFilePath = value || '_cortex-debug.log';

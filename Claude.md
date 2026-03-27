@@ -15,20 +15,21 @@ Obsidian plugin. Claude Code CLI as subprocess (NOT API, NOT Agent SDK). No API 
 - Sessions: `.obsidian/plugins/cortex/.claude/sessions/<id>.json` (metadata only; actual history in `~/.claude/projects/`)
 
 ## Current status
-Working: chat panel, markdown rendering, session persistence + history UI, session resume + history display, context injection (vault tree + context file), send-on-enter, command palette (8 cmds), export/copy, token logging, autonomous memory setting, remote session detection, configurable vault tree depth (0=off, 1-10=N levels, -1=unlimited), stdin-based prompt delivery (fixes smart-quote/special-char bugs on Windows).
+Working: chat panel, markdown rendering, session persistence + history UI, session resume + history display, context injection (vault tree + context file + per-note frontmatter), send-on-enter, command palette (10 cmds), export/copy, token logging, autonomous memory setting, remote session detection, configurable vault tree depth (0=off, 1-10=N levels, -1=unlimited), stdin-based prompt delivery (fixes smart-quote/special-char bugs on Windows), @-mention note injection, file/URL attachment, split-pane context awareness, permission modes (Standard/Read-only/Full access) with denial card + session upgrade, tool call visibility (collapsible), context gauge (SVG ring, click to compact), UI Bridge (@@CORTEX_ACTION protocol: open-file, open-file-split, navigate-heading, show-notice, focus-search, open-settings, run-command), command allowlist + denylist with settings browser + confirmation modal, mid-session allowlist injection, session context refresh command, command reference file (`.obsidian/plugins/cortex/commands.md` generated on layout ready — Claude reads it instead of guessing IDs), log file moved to plugin dir (`.obsidian/plugins/cortex/cortex-debug.log`), orphaned allowlist entry detection in settings UI.
 
-Remaining: FrontmatterGuard.ts (stubbed), pinned context files (backburned), permission dialog (currently using --dangerously-skip-permissions; future: native Obsidian modal).
+Remaining: FrontmatterGuard.ts write-protection (blocked: Claude Code doesn't support per-tool-call approval in --print mode), inline diff preview (same constraint), pinned context files UI (backburned).
 
 Test vault: `D:\2\deleteme` (symlinked to plugin dir).
 
 ## Key files
 | File                          | Purpose                                                     |
 | ----------------------------- | ----------------------------------------------------------- |
-| `main.ts`                     | Plugin entry, 8 commands, activateView                      |
-| `src/ClaudeView.ts`           | Chat UI, session state, context injection, history modal    |
+| `main.ts`                     | Plugin entry, 10 commands, activateView, notifyAllowlistChanged, generateCommandsFile |
+| `src/ClaudeView.ts`           | Chat UI, session state, context injection, history modal, bridgeOptions, refreshSessionContext |
 | `src/ClaudeProcess.ts`        | Binary detect, spawn (PowerShell on Win), stream-json parse |
-| `src/ContextManager.ts`       | Vault tree + context file assembly; depth setting controls tree output |
-| `src/settings.ts`             | Settings schema + tab UI                                    |
+| `src/ContextManager.ts`       | Vault tree + context file + allowlist assembly; all session-start context layers |
+| `src/UIBridge.ts`             | @@CORTEX_ACTION parsing + execution; ConfirmCommandModal; allowlist/denylist enforcement |
+| `src/settings.ts`             | Settings schema + tab UI; command browser (searchable checklist) |
 | `src/utils/sessionStorage.ts` | Session CRUD, .jsonl parse, canResumeLocally                |
 | `src/utils/logger.ts`         | File + console logging, estimateTokens                      |
 | `src/utils/fileTree.ts`       | Vault folder tree builder                                   |

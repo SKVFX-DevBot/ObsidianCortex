@@ -109,18 +109,38 @@ Highlight any text in an open note, then run **Cortex: Send selection as context
 
 A **context gauge** (ring icon) appears in the input bar after your first message — hover to see how much of the session's 200K token context window remains, and click to manually compact the session history if it's filling up.
 
+### UI Bridge action confirmation
+
+The Command Allowlist is the single permission boundary for `run-command` actions. Commands in the allowlist execute immediately — no further confirmation needed. Commands *not* in the allowlist are handled based on your settings:
+
+- **Prompt for unlisted commands on (default):** A confirmation modal appears showing the command name and a **Don't ask again** checkbox. Click **Allow** to run it (if checked: adds to allowlist permanently). Click **Deny** to block it (if checked: adds to denylist — future attempts are silently hard-blocked). Allowlist always takes precedence over the denylist, so checking a denied command in the command browser re-enables it.
+- **Prompt for unlisted commands off:** Unlisted commands are hard-blocked with a notice explaining why.
+
+The 6 built-in UI Bridge actions (open file, open settings, focus search, etc.) always execute immediately — they predate the allowlist system and Claude is instructed to always emit a `show-notice` describing what it did and why.
+
 ### Running Obsidian commands
 
 Claude can execute Obsidian commands directly — for example, opening today's daily note, triggering a Templater template, or refreshing a Dataview view — without you having to do it manually.
 
-This is disabled by default. To enable it, go to **Settings → Cortex → Command Allowlist** and check the commands you want Claude to be able to run. The list shows every command currently registered by Obsidian and your installed plugins, searchable by name. Claude is only told about — and only permitted to call — the commands you check. Unchecked commands are silently blocked even if Claude tries to call them.
+Three commands are pre-approved by default (`switcher:open`, `daily-notes`, `editor:open-search`). You can adjust the list at any time in **Settings → Cortex → Command Allowlist**, which shows every command registered by Obsidian and your installed plugins, searchable by name.
+
+**How permission works:**
+
+| Situation | What happens |
+|---|---|
+| Command is in the **allowlist** | Runs immediately — no confirmation |
+| Command is **not** in the allowlist (prompt mode on) | A modal appears: Allow or Deny, with an optional **Don't ask again** checkbox |
+| Allow + Don't ask again | Command runs and is added to the allowlist permanently |
+| Deny + Don't ask again | Command is added to the denylist — future attempts are silently hard-blocked |
+| Command is in the **denylist** | Silently blocked (allowlist always beats denylist — check it in the browser to re-enable) |
+| Prompt mode off | Unlisted commands are hard-blocked with an explanatory notice |
+
+Claude looks up command IDs from a reference file (`.obsidian/plugins/cortex/commands.md`) generated at startup — it never guesses IDs. If a command can't be found after you approve it, you'll see a clear notice explaining why.
 
 Once enabled, you can ask Claude things like:
 - "Open today's daily note"
 - "Refresh the Dataview on this page"
 - "Create a new note from my Project template"
-
-> **Note:** The command runs immediately when Claude emits it — there is no confirmation step. Only enable commands you are comfortable with Claude calling autonomously.
 
 ### Tool call visibility
 
@@ -297,9 +317,11 @@ Open **Settings → Cortex** to configure:
 | Resume last session on startup | On                     | Automatically resume the most recent session when the Cortex panel opens.                                                                               |
 | Autonomous memory              | On                     | Claude will autonomously update the context file as it learns about your vault. Disable if you prefer to manage it manually or if your vault is shared. |
 | Permission mode                | Standard               | Controls which vault operations Claude is allowed to perform. See [Permissions](#permissions) below.                                                    |
-| Command Allowlist              | *(empty)*              | Obsidian commands Claude is allowed to run via the UI Bridge. Search and check commands in the list. Empty = run-command disabled.                       |
-| Enable debug log               | On                     | Write a debug log file to your vault. See [Logging](#logging) below.                                                                                    |
-| Log file path                  | `_cortex-debug.log`    | Vault-relative path for the log file. The file is appended to — delete it manually to start fresh.                                                      |
+| Command Allowlist              | `switcher:open`, `daily-notes`, `editor:open-search` | Obsidian commands Claude is allowed to run via the UI Bridge. Allowlisted commands execute immediately. Search and check commands to add more. |
+| Prompt for unlisted commands   | On                     | When Claude tries a command not in the allowlist, show a confirmation prompt. Allow + "Don't ask again" adds to allowlist. Deny + "Don't ask again" adds to denylist (silently hard-blocked in future). Allowlist always beats denylist. |
+| Denied commands                | *(hidden until used)*  | Shows count of permanently denied commands with a **Clear denylist** button. To re-enable a specific denied command, add it to the allowlist via the command browser. |
+| Enable debug log               | On                     | Write a debug log file. See [Logging](#logging) below.                                                                                                  |
+| Log file path                  | `.obsidian/plugins/cortex/cortex-debug.log` | Vault-relative path for the log file. Defaults to the plugin folder so it stays out of your vault. The file is appended to — delete it manually to start fresh. |
 | Log verbosity                  | Normal                 | Normal logs session events and errors. Verbose adds raw stream data and token breakdowns.                                                                |
 | @-mention file types           | `md, fountain, txt`    | Comma-separated file extensions included in the `@` autocomplete dropdown. Add any text-based format your vault uses.                                    |
 | Inject split-pane files        | On                     | When Obsidian is in split-pane view, include all visible file paths in the active note context. In stacked tabs, only the focused note is included.       |

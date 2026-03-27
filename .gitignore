@@ -2,6 +2,9 @@
 node_modules/
 main.js
 _cortex-debug.log
+# Generated at runtime when plugin dev folder is opened directly as a vault
+commands.md
+cortex-debug.log
 
 # Obsidian plugin runtime data (machine-specific)
 data.json

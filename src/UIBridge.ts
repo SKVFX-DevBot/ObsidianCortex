@@ -1,4 +1,4 @@
-import { App, Notice } from 'obsidian';
+import { App, Modal, Notice } from 'obsidian';
 import { log, warn } from './utils/logger';
 import { ACTION_PREFIX } from './constants';
 export { ACTION_PREFIX } from './constants';
@@ -6,6 +6,63 @@ export { ACTION_PREFIX } from './constants';
 export interface CortexAction {
   action: string;
   [key: string]: unknown;
+}
+
+export interface UIBridgeOptions {
+  commandAllowlist?: string[];
+  commandDenylist?: string[];
+  /** If true, prompt when Claude tries a command not in the allowlist. If false, hard-block it. */
+  confirmUnlistedCommands?: boolean;
+  onAddToAllowlist?: (commandId: string) => Promise<void>;
+  onAddToDenylist?: (commandId: string) => Promise<void>;
+}
+
+class ConfirmCommandModal extends Modal {
+  private resolved = false;
+
+  constructor(
+    app: App,
+    private commandName: string,
+    private resolve: (result: { allow: boolean; remember: boolean }) => void,
+  ) {
+    super(app);
+  }
+
+  private settle(result: { allow: boolean; remember: boolean }) {
+    if (this.resolved) return;
+    this.resolved = true;
+    this.resolve(result);
+    this.close();
+  }
+
+  onOpen() {
+    this.titleEl.setText('Cortex — Unlisted Command');
+    const { contentEl } = this;
+
+    contentEl.createEl('p', {
+      text: `Claude wants to run: "${this.commandName}". This command isn't in your allowlist.`,
+      cls: 'cortex-confirm-desc',
+    });
+
+    let remember = false;
+    const checkRow = contentEl.createDiv({ cls: 'cortex-confirm-check-row' });
+    const checkbox = checkRow.createEl('input', { type: 'checkbox' });
+    checkbox.id = 'cortex-confirm-remember';
+    checkbox.addEventListener('change', () => { remember = checkbox.checked; });
+    const label = checkRow.createEl('label', { text: 'Don\'t ask again' });
+    label.htmlFor = 'cortex-confirm-remember';
+
+    const btnRow = contentEl.createDiv({ cls: 'cortex-confirm-btn-row' });
+    const allowBtn = btnRow.createEl('button', { text: 'Allow', cls: 'mod-cta' });
+    allowBtn.addEventListener('click', () => this.settle({ allow: true, remember }));
+    const denyBtn = btnRow.createEl('button', { text: 'Deny' });
+    denyBtn.addEventListener('click', () => this.settle({ allow: false, remember }));
+  }
+
+  onClose() {
+    this.settle({ allow: false, remember: false });
+    this.contentEl.empty();
+  }
 }
 
 /**
@@ -36,9 +93,18 @@ export function extractActions(text: string): { clean: string; actions: CortexAc
 
 /**
  * Execute a single Cortex UI action via the Obsidian API.
- * commandAllowlist gates the run-command action — only IDs in the list are permitted.
+ * The 6 built-in actions execute immediately (transparency via show-notice).
+ * run-command requires the commandId to be in the allowlist, or prompts if confirmUnlistedCommands is true.
  */
-export async function executeAction(app: App, action: CortexAction, commandAllowlist: string[] = []): Promise<void> {
+export async function executeAction(app: App, action: CortexAction, options: UIBridgeOptions = {}): Promise<void> {
+  const {
+    commandAllowlist = [],
+    commandDenylist = [],
+    confirmUnlistedCommands = true,
+    onAddToAllowlist,
+    onAddToDenylist,
+  } = options;
+
   log('UIBridge: executing action:', action.action);
 
   switch (action.action) {
@@ -56,7 +122,6 @@ export async function executeAction(app: App, action: CortexAction, commandAllow
     case 'open-file-split': {
       const file = app.vault.getFileByPath(action.path as string);
       if (file) {
-        const direction = (action.direction as 'vertical' | 'horizontal') ?? 'vertical';
         const leaf = app.workspace.getLeaf('split');
         await leaf.openFile(file);
       } else {
@@ -70,7 +135,6 @@ export async function executeAction(app: App, action: CortexAction, commandAllow
       if (file) {
         const leaf = app.workspace.getLeaf(false);
         await leaf.openFile(file);
-        // Scroll to heading via the editor after a brief tick to allow render
         setTimeout(() => {
           const view = leaf.view as any;
           const editor = view?.editor;
@@ -111,15 +175,43 @@ export async function executeAction(app: App, action: CortexAction, commandAllow
     case 'run-command': {
       const commandId = action.commandId as string;
       if (!commandId) { warn('UIBridge: run-command — missing commandId'); break; }
-      if (!commandAllowlist.includes(commandId)) {
+
+      const displayName = (app as any).commands.commands[commandId]?.name ?? commandId;
+
+      if (commandAllowlist.includes(commandId)) {
+        // Allowlist takes precedence over everything — execute immediately
+        const executed = (app as any).commands.executeCommandById(commandId);
+        if (executed) log('UIBridge: run-command executed:', commandId);
+        else {
+          warn('UIBridge: run-command — command not found or failed:', commandId);
+          new Notice(`Cortex: Could not run "${displayName}" — the command wasn't found. It may belong to a plugin that isn't enabled.`, 6000);
+        }
+      } else if (commandDenylist.includes(commandId)) {
+        // Permanently denied (and not in allowlist) — hard block silently
+        log('UIBridge: run-command hard-blocked by denylist:', commandId);
+      } else if (confirmUnlistedCommands) {
+        // Neither list — prompt
+        const { allow, remember } = await new Promise<{ allow: boolean; remember: boolean }>(resolve => {
+          new ConfirmCommandModal(app, displayName, resolve).open();
+        });
+        if (allow) {
+          if (remember && onAddToAllowlist) await onAddToAllowlist(commandId);
+          const executed = (app as any).commands.executeCommandById(commandId);
+          if (executed) log('UIBridge: run-command executed:', commandId);
+          else {
+            warn('UIBridge: run-command — command not found or failed:', commandId);
+            new Notice(`Cortex: Could not run "${displayName}" — the command wasn't found. It may belong to a plugin that isn't enabled.`, 6000);
+          }
+        } else {
+          if (remember && onAddToDenylist) await onAddToDenylist(commandId);
+          log('UIBridge: run-command denied by user:', commandId);
+          new Notice(`Cortex: Command "${displayName}" denied.`, 3000);
+        }
+      } else {
+        // Prompting disabled — hard block with notice
         warn('UIBridge: run-command blocked — not in allowlist:', commandId);
-        const displayName = (app as any).commands.commands[commandId]?.name ?? commandId;
         new Notice(`Cortex: Claude wanted to run "${displayName}" but it isn't in the Command Allowlist. Add it in Settings → Cortex to enable it.`, 8000);
-        break;
       }
-      const executed = (app as any).commands.executeCommandById(commandId);
-      if (executed) log('UIBridge: run-command executed:', commandId);
-      else warn('UIBridge: run-command — command not found or failed:', commandId);
       break;
     }
 

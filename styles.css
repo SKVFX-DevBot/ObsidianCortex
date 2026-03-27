@@ -599,6 +599,28 @@
   text-decoration: underline;
 }
 
+/* ── UI Bridge confirmation modal ── */
+.cortex-confirm-desc {
+  margin: 0 0 16px;
+  color: var(--text-normal);
+}
+
+.cortex-confirm-check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.cortex-confirm-btn-row {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 /* ── Command allowlist browser (settings) ── */
 .cortex-command-list {
   max-height: 240px;
@@ -642,6 +664,16 @@
   font-size: var(--font-ui-small);
   color: var(--text-muted);
   margin: 0 0 16px;
+}
+
+.cortex-command-row--orphaned {
+  background: var(--background-modifier-error-rgb, rgba(255,80,80,0.05));
+}
+
+.cortex-command-orphan-badge {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-error);
+  margin-left: 4px;
 }
 
 /* ── @-mention autocomplete dropdown ── */

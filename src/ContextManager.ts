@@ -38,16 +38,24 @@ export class ContextManager {
       `| \`navigate-heading\` | \`path\`, \`heading\` | Scroll to a specific heading in a file |\n` +
       `| \`show-notice\` | \`message\`, \`duration\` (ms, optional) | Show a brief toast notification |\n` +
       `| \`focus-search\` | *(none)* | Open Obsidian's quick switcher |\n` +
-      `| \`open-settings\` | \`tab\` (optional, e.g. "cortex") | Open Obsidian settings, optionally to a specific tab |\n\n` +
+      `| \`open-settings\` | \`tab\` (optional, e.g. "cortex") | Open Obsidian settings, optionally to a specific tab |\n` +
+      `| \`run-command\` | \`commandId\` | Run any Obsidian command palette command by ID |\n\n` +
       `Example: after creating a new note, emit:\n` +
       `@@CORTEX_ACTION {"action": "open-file", "path": "Notes/My New Note.md"}\n\n` +
       `Use these actions proactively when they improve the user's experience — ` +
       `especially \`open-file\` after creating content and \`show-notice\` to confirm completed tasks.\n\n` +
+      `**Always emit \`show-notice\` after any state-changing action** (\`open-file\`, \`open-file-split\`, ` +
+      `\`open-settings\`, \`focus-search\`, \`run-command\`) so the user knows what happened and why — ` +
+      `e.g. \`@@CORTEX_ACTION {"action": "show-notice", "message": "Opened Settings → Cortex tab"}\`. ` +
+      `This is especially important when the action is an approximation of what the user asked for.\n\n` +
       `Fallback: the UI bridge is a convenience layer — it does not define the ceiling of what is possible. ` +
       `If no UI bridge action covers what the user needs, explore the full solution space before giving up: ` +
       `direct file edits, Obsidian config files (\`.obsidian/*.json\`, \`.obsidian/snippets/\`, \`.obsidian/plugins/*/data.json\`), ` +
       `CSS snippets, shell commands (if permission mode allows), or any other file-based approach. ` +
-      `The vault file system is always available.`;
+      `The vault file system is always available.\n\n` +
+      `## Command discovery\n` +
+      `A complete, searchable list of all available Obsidian command IDs is at \`.obsidian/plugins/cortex/commands.md\`. ` +
+      `Always read this file before using \`run-command\` — never guess a command ID.`;
 
     if (this.commandAllowlist.length > 0) {
       const rows = this.commandAllowlist
@@ -60,7 +68,7 @@ export class ContextManager {
         `\n\n## Allowed Obsidian commands\n` +
         `You can run specific Obsidian commands using:\n` +
         `@@CORTEX_ACTION {"action": "run-command", "commandId": "<id>"}\n\n` +
-        `Only these commands are permitted (others will be silently blocked):\n\n` +
+        `These commands run immediately. For any other command the user asks for, attempt it — the user will be prompted to approve or deny:\n\n` +
         `| Command | ID |\n|---|---|\n${rows}`;
     }
 

@@ -420,6 +420,26 @@ export class ClaudeView extends ItemView {
     this.inputEl?.focus();
   }
 
+  private bridgeOptions() {
+    return {
+      commandAllowlist: this.plugin.settings.commandAllowlist,
+      commandDenylist: this.plugin.settings.commandDenylist,
+      confirmUnlistedCommands: this.plugin.settings.confirmUnlistedCommands,
+      onAddToAllowlist: async (commandId: string) => {
+        if (!this.plugin.settings.commandAllowlist.includes(commandId)) {
+          this.plugin.settings.commandAllowlist = [...this.plugin.settings.commandAllowlist, commandId];
+          await this.plugin.saveSettings();
+        }
+      },
+      onAddToDenylist: async (commandId: string) => {
+        if (!this.plugin.settings.commandDenylist.includes(commandId)) {
+          this.plugin.settings.commandDenylist = [...this.plugin.settings.commandDenylist, commandId];
+          await this.plugin.saveSettings();
+        }
+      },
+    };
+  }
+
   injectSelectionContext(selection: string, sourceName: string) {
     this.pendingContexts.push({ text: selection, source: sourceName, pinned: false });
     this.renderContextZone();
@@ -429,7 +449,7 @@ export class ClaudeView extends ItemView {
   injectAllowlistUpdate(newAllowlist: string[]) {
     if (newAllowlist.length === 0) {
       this.pendingSystemMessage =
-        '[System: The command allowlist was cleared. No Obsidian commands are currently available via run-command.]';
+        '[System: The command allowlist was updated — it is now empty. You can still use run-command for any command; the user will be prompted to approve or deny each attempt.]';
     } else {
       const rows = newAllowlist
         .map(id => {
@@ -438,7 +458,7 @@ export class ClaudeView extends ItemView {
         })
         .join('\n');
       this.pendingSystemMessage =
-        `[System: The command allowlist was updated mid-session. Commands now available via run-command:\n${rows}\nOnly these commands are permitted.]`;
+        `[System: The command allowlist was updated mid-session. These commands now execute immediately via run-command:\n${rows}\nAny other command will prompt the user for approval — do not assume unlisted commands are blocked.]`;
     }
   }
 
@@ -648,6 +668,7 @@ export class ClaudeView extends ItemView {
 
     let toolCallCount = 0;
     let accumulated = '';
+    let uiBridgeActionCount = 0;
 
     parseStreamOutput(proc, {
       onText: (delta) => {
@@ -657,7 +678,8 @@ export class ClaudeView extends ItemView {
         if (this.plugin.settings.uiBridgeEnabled) {
           const { clean, actions } = extractActions(accumulated);
           accumulated = clean;
-          actions.forEach(a => executeAction(this.app, a, this.plugin.settings.commandAllowlist));
+          uiBridgeActionCount += actions.length;
+          actions.forEach(a => executeAction(this.app, a, this.bridgeOptions()));
         }
         assistantEl.setText(accumulated);
         this.scrollToBottom();
@@ -666,7 +688,8 @@ export class ClaudeView extends ItemView {
         if (this.plugin.settings.uiBridgeEnabled) {
           try {
             const { actions } = extractActions(line + '\n');
-            actions.forEach(a => executeAction(this.app, a, this.plugin.settings.commandAllowlist));
+            uiBridgeActionCount += actions.length;
+            actions.forEach(a => executeAction(this.app, a, this.bridgeOptions()));
           } catch { /* malformed — already logged in extractActions */ }
         }
       },
@@ -689,7 +712,7 @@ export class ClaudeView extends ItemView {
       onDone: (sessionId) => {
         statusEl.remove();
         this.activeProc = null;
-        if (!accumulated) this.appendMessage('system', 'Interrupted.');
+        if (!accumulated && !uiBridgeActionCount) this.appendMessage('system', 'Interrupted.');
 
         if (sessionId) {
           const vaultRoot = (this.app.vault.adapter as any).basePath;
@@ -751,7 +774,9 @@ export class ClaudeView extends ItemView {
           });
         }
 
-        if (!accumulated) {
+        if (!accumulated && uiBridgeActionCount) {
+          assistantEl.remove();
+        } else if (!accumulated) {
           assistantEl.setText('(no response)');
         } else if (this.isAuthError(accumulated)) {
           this.renderAuthError(assistantEl);

@@ -1,9 +1,11 @@
 import { Plugin, Notice, WorkspaceLeaf, addIcon } from 'obsidian';
+import { writeFileSync } from 'fs';
+import { join } from 'path';
 import { ClaudeView, VIEW_TYPE_CLAUDE } from './src/ClaudeView';
 import { CortexSettings, DEFAULT_SETTINGS, CortexSettingsTab } from './src/settings';
 import { findClaudeBinary } from './src/ClaudeProcess';
 import { resolveShellEnv } from './src/utils/shellEnv';
-import { initLogger, log } from './src/utils/logger';
+import { initLogger, log, warn } from './src/utils/logger';
 import { AboutModal } from './src/modals/AboutModal';
 
 export default class CortexPlugin extends Plugin {
@@ -21,6 +23,8 @@ export default class CortexPlugin extends Plugin {
       verbosity: this.settings.logVerbosity,
     });
     log('Cortex loading — vault root:', vaultRoot);
+
+    this.app.workspace.onLayoutReady(() => this.generateCommandsFile());
 
     this.shellEnv = resolveShellEnv();
     this.claudeBinaryPath = findClaudeBinary(this.settings.binaryPath);
@@ -294,10 +298,54 @@ export default class CortexPlugin extends Plugin {
 
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    // Migrate old vault-root log path to plugin directory
+    if (this.settings.logFilePath === '_cortex-debug.log') {
+      this.settings.logFilePath = DEFAULT_SETTINGS.logFilePath;
+      await this.saveSettings();
+    }
   }
 
   async saveSettings() {
     await this.saveData(this.settings);
+  }
+
+  generateCommandsFile() {
+    try {
+      const vaultRoot = (this.app.vault.adapter as any).basePath;
+      const outPath = join(vaultRoot, '.obsidian', 'plugins', 'cortex', 'commands.md');
+
+      const commands = Object.values(
+        (this.app as any).commands.commands as Record<string, { id: string; name: string }>
+      ).sort((a, b) => a.id.localeCompare(b.id));
+
+      // Group by plugin prefix (part before first ':')
+      const groups = new Map<string, { id: string; name: string }[]>();
+      for (const cmd of commands) {
+        const prefix = cmd.id.includes(':') ? cmd.id.split(':')[0] : 'core';
+        if (!groups.has(prefix)) groups.set(prefix, []);
+        groups.get(prefix)!.push(cmd);
+      }
+
+      const lines: string[] = [
+        '# Obsidian Command Reference',
+        `_Generated: ${new Date().toISOString()}_`,
+        '_Grep by plugin name or display name to find the right command ID for run-command._',
+        '',
+      ];
+
+      for (const [prefix, cmds] of [...groups.entries()].sort()) {
+        lines.push(`## ${prefix}`);
+        for (const cmd of cmds) {
+          lines.push(`- \`${cmd.id}\` — ${cmd.name}`);
+        }
+        lines.push('');
+      }
+
+      writeFileSync(outPath, lines.join('\n'), 'utf8');
+      log(`Commands file written: ${outPath} (${commands.length} commands)`);
+    } catch (e) {
+      warn('Failed to write commands file:', e);
+    }
   }
 
   notifyAllowlistChanged(newAllowlist: string[]) {
