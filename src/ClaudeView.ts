@@ -358,7 +358,7 @@ export class ClaudeView extends ItemView {
       this.startNewSession();
     }, () => {
       this.inputEl?.focus();
-    }).open();
+    }, this.currentSessionFileId).open();
   }
 
   clearCurrentSession() {

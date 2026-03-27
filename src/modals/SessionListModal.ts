@@ -5,6 +5,7 @@ export class SessionListModal extends Modal {
   sessions: StoredSession[];
   filteredSessions: StoredSession[];
   vaultRoot: string;
+  activeSessionFileId: string | undefined;
   onSelect: (session: StoredSession) => void;
   onNewSession: () => void;
   onDismiss: () => void;
@@ -17,6 +18,7 @@ export class SessionListModal extends Modal {
     onSelect: (s: StoredSession) => void,
     onNewSession: () => void,
     onDismiss: () => void = () => {},
+    activeSessionFileId?: string,
   ) {
     super(app);
     this.vaultRoot = vaultRoot;
@@ -25,6 +27,7 @@ export class SessionListModal extends Modal {
     this.onSelect = onSelect;
     this.onNewSession = onNewSession;
     this.onDismiss = onDismiss;
+    this.activeSessionFileId = activeSessionFileId;
   }
 
   onOpen() {
@@ -81,13 +84,14 @@ export class SessionListModal extends Modal {
   private renderSessionItem(list: HTMLElement, session: StoredSession) {
     const isNew = !session.claudeSessionId;
     const resumable = !isNew && canResumeLocally(session.claudeSessionId);
-    const item = list.createEl('li', {
-      cls: isNew
-        ? 'cortex-session-item cortex-session-new'
-        : resumable
-          ? 'cortex-session-item'
-          : 'cortex-session-item cortex-session-remote',
-    });
+    const isActive = session.id === this.activeSessionFileId;
+    const cls = [
+      'cortex-session-item',
+      isNew ? 'cortex-session-new' : '',
+      !isNew && !resumable ? 'cortex-session-remote' : '',
+      isActive ? 'cortex-session-active' : '',
+    ].filter(Boolean).join(' ');
+    const item = list.createEl('li', { cls });
     const titleEl = item.createEl('span', { text: session.title, cls: 'cortex-session-title' });
     item.createEl('span', {
       text: new Date(session.updatedAt).toLocaleString(),

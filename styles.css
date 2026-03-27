@@ -305,6 +305,15 @@
   background: var(--background-secondary);
 }
 
+.cortex-session-item.cortex-session-active {
+  border-left: 3px solid var(--color-accent);
+  padding-left: 9px; /* compensate for the wider border */
+}
+
+.cortex-session-item.cortex-session-active .cortex-session-title {
+  font-weight: 600;
+}
+
 .cortex-session-title {
   flex: 1;
   overflow: hidden;
