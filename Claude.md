@@ -1,6 +1,8 @@
 # Claude.md — Cortex
 ## What
-Obsidian plugin. Claude Code CLI as subprocess (NOT API, NOT Agent SDK). No API key — rides Pro/Max sub. Desktop only.
+Obsidian plugin. Core feature: Claude Code CLI as subprocess (NOT API, NOT Agent SDK). No API key for AI — rides Pro/Max sub. Desktop only.
+
+Cortex is not limited to features that involve Claude Code directly. Obsidian-native features (voice input/output, live transcription, canvas, template integration, etc.) are in scope when they enhance the note-taking + AI workflow. New non-Claude features should still fit the "AI-enhanced Obsidian" mission — don't add things just because they're possible.
 
 ## Architecture (locked — don't revisit without discussion)
 - `child_process.spawn` → `powershell.exe -NonInteractive -Command "& 'claude.exe' ..."` (Windows/Electron stdout fix)
@@ -12,7 +14,7 @@ Obsidian plugin. Claude Code CLI as subprocess (NOT API, NOT Agent SDK). No API 
 - `--resume <sessionId>` on every turn after first; uses cache_read_input_tokens (~10x cheaper)
 - Do NOT prepend history manually — that costs MORE than --resume
 - Vault root = cwd for all spawns
-- Sessions: `.obsidian/plugins/cortex/.claude/sessions/<id>.json` (metadata only; actual history in `~/.claude/projects/`)
+- Sessions: `.obsidian/cortex/sessions/<id>.json` (metadata only; actual history in `~/.claude/projects/`)
 
 ## Current status
 Working: chat panel, markdown rendering, session persistence + history UI, session resume + history display, context injection (vault tree + context file + per-note frontmatter), send-on-enter, command palette (10 cmds), export/copy, token logging, autonomous memory setting, remote session detection, configurable vault tree depth (0=off, 1-10=N levels, -1=unlimited), stdin-based prompt delivery (fixes smart-quote/special-char bugs on Windows), @-mention note injection, file/URL attachment, split-pane context awareness, permission modes (Standard/Read-only/Full access) with denial card + session upgrade, tool call visibility (collapsible), context gauge (SVG ring, click to compact), UI Bridge (@@CORTEX_ACTION protocol: open-file, open-file-split, navigate-heading, show-notice, focus-search, open-settings, run-command), command allowlist + denylist with settings browser + confirmation modal, mid-session allowlist injection, session context refresh command, command reference file (`.obsidian/plugins/cortex/commands.md` generated on layout ready — Claude reads it instead of guessing IDs), log file moved to plugin dir (`.obsidian/plugins/cortex/cortex-debug.log`), orphaned allowlist entry detection in settings UI, session manager (active session indicator, rename updates panel header on X-close, drag-and-drop reorder with sortOrder persistence, new sessions always inserted at top).

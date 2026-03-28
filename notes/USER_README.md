@@ -123,7 +123,7 @@ The 6 built-in UI Bridge actions (open file, open settings, focus search, etc.) 
 
 Claude can execute Obsidian commands directly — for example, opening today's daily note, triggering a Templater template, or refreshing a Dataview view — without you having to do it manually.
 
-Three commands are pre-approved by default (`switcher:open`, `daily-notes`, `editor:open-search`). You can adjust the list at any time in **Settings → Cortex → Command Allowlist**, which shows every command registered by Obsidian and your installed plugins, searchable by name.
+Three commands are pre-approved by default (`switcher:open`, `daily-notes`, `editor:open-search`). You can adjust the list at any time in **Settings → Cortex → UI Bridge & Commands**, which shows every command registered by Obsidian and your installed plugins, searchable by name.
 
 **How permission works:**
 
@@ -344,7 +344,7 @@ Open **Settings → Cortex** to configure:
 | Resume last session on startup | On                     | Automatically resume the most recent session when the Cortex panel opens.                                                                               |
 | Autonomous memory              | On                     | Claude will autonomously update the context file as it learns about your vault. Disable if you prefer to manage it manually or if your vault is shared. |
 | Permission mode                | Standard               | Controls which vault operations Claude is allowed to perform. See [Permissions](#permissions) below.                                                    |
-| Command Allowlist              | `switcher:open`, `daily-notes`, `editor:open-search` | Obsidian commands Claude is allowed to run via the UI Bridge. Allowlisted commands execute immediately. Search and check commands to add more. |
+| Command Allowlist              | `switcher:open`, `daily-notes`, `editor:open-search` | Found under **UI Bridge & Commands**. Obsidian commands Claude is allowed to run via the UI Bridge. Allowlisted commands execute immediately. Search and check commands to add more. |
 | Prompt for unlisted commands   | On                     | When Claude tries a command not in the allowlist, show a confirmation prompt. Allow + "Don't ask again" adds to allowlist. Deny + "Don't ask again" adds to denylist (silently hard-blocked in future). Allowlist always beats denylist. |
 | Denied commands                | *(hidden until used)*  | Shows count of permanently denied commands with a **Clear denylist** button. To re-enable a specific denied command, add it to the allowlist via the command browser. |
 | Enable debug log               | On                     | Write a debug log file. See [Logging](#logging) below.                                                                                                  |
@@ -398,7 +398,7 @@ All settings take effect immediately without restarting Obsidian.
 - **Claude Code must be installed via a terminal** — the Obsidian desktop app or web app alone is not sufficient. On Windows this means PowerShell; on Mac/Linux use Terminal. See the [Claude Code install guide](https://code.claude.com/docs/en/overview#native-install-recommended) for platform-specific instructions.
 - **One active session at a time** — concurrent sessions are not supported
 - Claude operates with full vault access
-- Sessions are stored in `.obsidian/plugins/cortex/.claude/sessions/` which is typically gitignored; sessions do not sync across devices
+- Sessions are stored in `.obsidian/cortex/sessions/` which is typically gitignored; sessions do not sync across devices
 
 ---
 
