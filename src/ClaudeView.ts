@@ -614,11 +614,20 @@ export class ClaudeView extends ItemView {
     ) as HTMLElement[];
     if (msgEls.length === 0) return Promise.resolve(defaults);
 
-    const sample = msgEls.slice(0, 8).map(el => {
+    // Walk all messages, truncating each, until we hit a total character budget.
+    // This ensures a name change anywhere in the conversation is included.
+    const BUDGET = 4000;
+    const lines: string[] = [];
+    let used = 0;
+    for (const el of msgEls) {
       const role = el.classList.contains('cortex-user') ? 'Human' : 'AI';
-      const content = (el.dataset.markdown ?? el.textContent ?? '').trim().substring(0, 300);
-      return `${role}: ${content}`;
-    }).join('\n\n');
+      const content = (el.dataset.markdown ?? el.textContent ?? '').trim().substring(0, 400);
+      const line = `${role}: ${content}`;
+      if (used + line.length > BUDGET) break;
+      lines.push(line);
+      used += line.length;
+    }
+    const sample = lines.join('\n\n');
 
     const prompt =
       `What are the real names (if any) used for the human and the AI in this conversation?\n` +
