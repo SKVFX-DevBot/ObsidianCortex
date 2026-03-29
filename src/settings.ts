@@ -37,6 +37,8 @@ export interface CortexSettings {
   injectStackedTabFiles: boolean;
   /** Vault-relative folder where "Export session to vault" saves notes. */
   exportFolder: string;
+  /** File ID of the session that was active when Obsidian was last closed. */
+  lastActiveSessionId: string;
 }
 
 export const DEFAULT_SETTINGS: CortexSettings = {
@@ -59,6 +61,7 @@ export const DEFAULT_SETTINGS: CortexSettings = {
   injectSplitPaneFiles: true,
   injectStackedTabFiles: false,
   exportFolder: 'Cortex Exports',
+  lastActiveSessionId: '',
 };
 
 export class CortexSettingsTab extends PluginSettingTab {

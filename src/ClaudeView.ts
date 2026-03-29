@@ -324,7 +324,14 @@ export class ClaudeView extends ItemView {
       const vaultRoot = (this.app.vault.adapter as any).basePath;
       const sessions = loadAllSessions(vaultRoot);
       if (sessions.length > 0) {
-        await this.loadSession(sessions[0]);
+        const lastId = this.plugin.settings.lastActiveSessionId;
+        const target = (lastId && sessions.find(s => s.id === lastId)) || sessions[0];
+        try {
+          await this.loadSession(target);
+        } catch (e) {
+          log('Failed to load session, starting new:', e);
+          this.startNewSession();
+        }
       }
     }
 
@@ -680,6 +687,9 @@ export class ClaudeView extends ItemView {
     this.currentSessionCreatedAt = session.createdAt;
     this.messagesEl.empty();
     this.updateSessionStatus();
+
+    this.plugin.settings.lastActiveSessionId = session.id;
+    void this.plugin.saveSettings();
 
     const isNew = !session.claudeSessionId;
     const resumable = !isNew && canResumeLocally(session.claudeSessionId);
