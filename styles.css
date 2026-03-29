@@ -427,6 +427,9 @@
 /* Markdown content inside assistant messages */
 .cortex-assistant p:last-child { margin-bottom: 0; }
 .cortex-assistant pre { overflow-x: auto; }
+/* Obsidian hides pre>code until async syntax highlighting adds .is-loaded;
+   that callback may never fire in a custom panel, so force visibility here. */
+.cortex-assistant pre code { display: block !important; }
 
 /* ── Setup / onboarding card ── */
 .cortex-setup-card {
