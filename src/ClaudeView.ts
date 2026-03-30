@@ -250,10 +250,10 @@ export class ClaudeView extends ItemView {
 
       if (e.key === 'ArrowDown' && !e.shiftKey) {
         if (this.historyIndex === -1) return;
-        e.preventDefault();
         const { value } = this.inputEl;
         const onLastLine = !value.substring(this.inputEl.selectionEnd).includes('\n');
         if (!onLastLine) return;
+        e.preventDefault();
         if (this.historyIndex === 0) {
           this.historyIndex = -1;
           this.inputEl.value = this.inputDraft;
