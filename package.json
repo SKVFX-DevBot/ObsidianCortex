@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-    "test": "npx tsx --test test/unit.test.ts"
+    "test": "npx tsx --test test/unit.test.ts",
+    "devdocs": "vitepress dev docs",
+    "builddocs": "vitepress build docs",
+    "servedocs": "vitepress serve docs"
   },
   "author": "Scott Kirvan",
   "license": "MIT",
@@ -17,6 +20,10 @@
     "obsidian": "latest",
     "tslib": "^2.6.0",
     "tsx": "^4.21.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "vitepress": "^1.6.4"
+  },
+  "dependencies": {
+    "vue": "^3.5.31"
   }
 }
