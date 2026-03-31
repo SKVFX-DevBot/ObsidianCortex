@@ -663,8 +663,9 @@ export class ClaudeView extends ItemView {
             this.appendMessage('user', msg.content);
           } else {
             const el = this.appendMessage('assistant', '');
-            el.dataset.markdown = msg.content;
-            await MarkdownRenderer.render(this.app, msg.content, el, '', this);
+            const { clean } = extractActions(msg.content);
+            el.dataset.markdown = clean;
+            await MarkdownRenderer.render(this.app, clean, el, '', this);
           }
         }
         const divider = this.messagesEl.createDiv({ cls: 'cortex-history-divider' });
