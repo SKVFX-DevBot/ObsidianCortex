@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.4](https://github.com/ScottKirvan/ObsidianCortex/compare/v1.5.3...v1.5.4) (2026-03-31)
+
+
+### Bug Fixes
+
+* **ui:** restore status indicator during tool calls after text has streamed ([0c97521](https://github.com/ScottKirvan/ObsidianCortex/commit/0c975219985fe383c9fc5c8148496ff1d3e9e61d)), closes [#67](https://github.com/ScottKirvan/ObsidianCortex/issues/67)
+
 ## [1.5.3](https://github.com/ScottKirvan/ObsidianCortex/compare/v1.5.2...v1.5.3) (2026-03-31)
 
 
