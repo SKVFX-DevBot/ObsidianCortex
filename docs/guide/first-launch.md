@@ -2,7 +2,7 @@
 
 After enabling the plugin:
 
-- A **wave icon** appears in the left ribbon — click it to open the Cortex chat panel
+- A **brain-circuit icon** appears in the left ribbon — click it to open the Cortex chat panel
 - Or use the Command Palette (`Ctrl+P` / `Cmd+P`): **Cortex: Open agent panel**
 
 ::: tip Claude not found?
