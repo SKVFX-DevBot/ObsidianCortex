@@ -54,7 +54,7 @@ export class ContextManager {
       `CSS snippets, shell commands (if permission mode allows), or any other file-based approach. ` +
       `The vault file system is always available.\n\n` +
       `## Command discovery\n` +
-      `A complete, searchable list of all available Obsidian command IDs is at \`.obsidian/plugins/cortex/commands.md\`. ` +
+      `A complete, searchable list of all available Obsidian command IDs is at \`.obsidian/plugins/cortex/obsidian-commands.md\`. ` +
       `Always read this file before using \`run-command\` — never guess a command ID.\n\n` +
       `## Vault query protocol\n` +
       `You can query live vault state by emitting a specially prefixed JSON line anywhere in your response:\n\n` +

@@ -332,7 +332,7 @@ export default class CortexPlugin extends Plugin {
   generateCommandsFile() {
     try {
       const vaultRoot = (this.app.vault.adapter as any).basePath;
-      const outPath = join(vaultRoot, '.obsidian', 'plugins', 'cortex', 'commands.md');
+      const outPath = join(vaultRoot, '.obsidian', 'plugins', 'cortex', 'obsidian-commands.md');
 
       const commands = Object.values(
         (this.app as any).commands.commands as Record<string, { id: string; name: string }>
