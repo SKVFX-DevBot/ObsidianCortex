@@ -32,7 +32,7 @@
   <span> · </span>
   <a href="https://github.com/ScottKirvan/ObsidianCortex/issues/new?template=feature_request.md">Request Feature</a>
   <span> · </span>
-  <a href="https://www.scottkirvan.com/Cortex/notes/USER_README.html">User Guide</a>
+  <a href="https://www.scottkirvan.com/ObsidianCortex/index.html">User Guide</a>
   <span> · </span>
   <a href="https://discord.gg/TN6XJSNK5Y">Discord</a>
   <span> · </span>
@@ -171,7 +171,7 @@ Cortex is not yet in the Obsidian community plugin browser.
 2. Type a message and press **Enter** (or click Send). Use Shift+Enter for a newline.
 3. Cortex has full access to your vault — ask it to summarize, organize, find, or create notes
 
-See the [User Guide](notes/USER_README.md) for context files, session management, and settings.
+See the [User Guide](https://www.scottkirvan.com/ObsidianCortex/) for context files, session management, and settings.
 
 
 ## Support the Project
@@ -193,4 +193,4 @@ MIT — see [LICENSE.md](LICENSE.md)
 ---
 
 Project Link: [Cortex](https://github.com/ScottKirvan/ObsidianCortex)  
-[CHANGELOG](notes/CHANGELOG.md) · [TODO](notes/TODO.md) · [User Guide](notes/USER_README.md)
+[CHANGELOG](notes/CHANGELOG.md) · [TODO](notes/TODO.md) · [User Guide](https://www.scottkirvan.com/ObsidianCortex/)

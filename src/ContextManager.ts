@@ -24,7 +24,7 @@ export class ContextManager {
       `Your working directory is the vault root. ` +
       `Help the user manage, write, organize, and think with their notes.\n\n` +
       `If the user asks how to use Cortex, configure settings, or report a bug, ` +
-      `direct them to the documentation at https://www.scottkirvan.com/Cortex/notes/USER_README ` +
+      `direct them to the documentation at https://www.scottkirvan.com/ObsidianCortex/ ` +
       `or the Discord community at https://discord.gg/TN6XJSNK5Y\n\n` +
       `## UI Bridge protocol\n` +
       `You can trigger Obsidian UI actions by emitting a specially prefixed JSON line anywhere in your response:\n\n` +

@@ -121,15 +121,15 @@ Cortex/
 
 Cortex uses [Conventional Commits](https://www.conventionalcommits.org/) — these drive automated versioning via [release-please](https://github.com/googleapis/release-please).
 
-| Prefix | Effect | Use for |
-|--------|--------|---------|
-| `feat:` | bumps MINOR | new user-facing feature |
-| `fix:` | bumps PATCH | bug fix |
-| `feat!:` / `fix!:` | bumps MAJOR | breaking change |
-| `docs:` | no version bump | documentation only |
-| `refactor:` | no version bump | code change, no behavior change |
-| `chore:` | no version bump | maintenance, deps, tooling |
-| `test:` | no version bump | adding or updating tests |
+| Prefix             | Effect          | Use for                         |
+| ------------------ | --------------- | ------------------------------- |
+| `feat:`            | bumps MINOR     | new user-facing feature         |
+| `fix:`             | bumps PATCH     | bug fix                         |
+| `feat!:` / `fix!:` | bumps MAJOR     | breaking change                 |
+| `docs:`            | no version bump | documentation only              |
+| `refactor:`        | no version bump | code change, no behavior change |
+| `chore:`           | no version bump | maintenance, deps, tooling      |
+| `test:`            | no version bump | adding or updating tests        |
 
 **Examples:**
 ```
@@ -147,7 +147,7 @@ feat!: change context file default path to _claude-context.md
 1. Fork the repo and create a branch from `main`
 2. Make your changes — keep PRs focused on a single concern
 3. Ensure `npm run build` passes with no TypeScript errors
-4. Update documentation (`notes/USER_README.md`, `README.md`) if your change affects user-facing behavior
+4. Update documentation (`docs` folder, `README.md`) if your change affects user-facing behavior
 5. Submit the PR — describe what changed and why
 
 CHANGELOG is generated automatically by release-please from commit messages; you don't need to edit it manually.

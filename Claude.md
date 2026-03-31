@@ -27,21 +27,21 @@ The vault query protocol (@@CORTEX_QUERY, #58) is the first half of the two-way 
 Test vault: `D:\2\deleteme` (symlinked to plugin dir).
 
 ## Key files
-| File                          | Purpose                                                     |
-| ----------------------------- | ----------------------------------------------------------- |
-| `main.ts`                     | Plugin entry, 10 commands, activateView, notifyAllowlistChanged, generateCommandsFile |
+| File                          | Purpose                                                                                        |
+| ----------------------------- | ---------------------------------------------------------------------------------------------- |
+| `main.ts`                     | Plugin entry, 10 commands, activateView, notifyAllowlistChanged, generateCommandsFile          |
 | `src/ClaudeView.ts`           | Chat UI, session state, context injection, history modal, bridgeOptions, refreshSessionContext |
-| `src/ClaudeProcess.ts`        | Binary detect, spawn (PowerShell on Win), stream-json parse |
-| `src/ContextManager.ts`       | Vault tree + context file + allowlist assembly; all session-start context layers |
-| `src/UIBridge.ts`             | @@CORTEX_ACTION parsing + execution; ConfirmCommandModal; allowlist/denylist enforcement |
-| `src/QueryHandler.ts`         | @@CORTEX_QUERY resolution; resolveQuery(), queryLabel(), buildInjectMessage() |
-| `src/settings.ts`             | Settings schema + tab UI; command browser (searchable checklist) |
-| `src/utils/sessionStorage.ts` | Session CRUD, .jsonl parse, canResumeLocally                |
-| `src/utils/logger.ts`         | File + console logging, estimateTokens                      |
-| `src/utils/fileTree.ts`       | Vault folder tree builder                                   |
-| `test/spawn-test.mjs`         | Standalone spawn test (node, no Obsidian)                   |
-| `notes/USER_README.md`        | User-facing guide                                           |
-| `notes/COMMIT_DRAFT.md`       | Commit msg staging (gitignored)                             |
+| `src/ClaudeProcess.ts`        | Binary detect, spawn (PowerShell on Win), stream-json parse                                    |
+| `src/ContextManager.ts`       | Vault tree + context file + allowlist assembly; all session-start context layers               |
+| `src/UIBridge.ts`             | @@CORTEX_ACTION parsing + execution; ConfirmCommandModal; allowlist/denylist enforcement       |
+| `src/QueryHandler.ts`         | @@CORTEX_QUERY resolution; resolveQuery(), queryLabel(), buildInjectMessage()                  |
+| `src/settings.ts`             | Settings schema + tab UI; command browser (searchable checklist)                               |
+| `src/utils/sessionStorage.ts` | Session CRUD, .jsonl parse, canResumeLocally                                                   |
+| `src/utils/logger.ts`         | File + console logging, estimateTokens                                                         |
+| `src/utils/fileTree.ts`       | Vault folder tree builder                                                                      |
+| `test/spawn-test.mjs`         | Standalone spawn test (node, no Obsidian)                                                      |
+| `docs/`                       | Root VitePress folder user-facing guide                                                        |
+| `notes/COMMIT_DRAFT.md`       | Commit msg staging (gitignored)                                                                |
 
 ## Scott's prefs
 - Conventional commits + release-please. Scott commits, I write code.

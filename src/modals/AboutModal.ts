@@ -33,7 +33,7 @@ export class AboutModal extends Modal {
 
     const helpBtn = btnRow.createEl('a', {
       text: 'Documentation',
-      href: 'https://www.scottkirvan.com/Cortex/notes/USER_README',
+      href: 'https://www.scottkirvan.com/ObsidianCortex/',
       cls: 'mod-cta cortex-about-link-btn',
     });
     helpBtn.setAttr('target', '_blank');
