@@ -1,11 +1,11 @@
 import { App, Modal, Notice } from 'obsidian';
-import type CortexPlugin from '../main';
+import type ObsidiBotPlugin from '../main';
 import { spawnClaude, parseStreamOutput } from './ClaudeProcess';
 import { buildVaultTree } from './utils/fileTree';
 import { log } from './utils/logger';
 
 export class ContextGenerationModal extends Modal {
-  private plugin: CortexPlugin;
+  private plugin: ObsidiBotPlugin;
   private contextFilePath: string;
   private binaryPath: string;
   private vaultRoot: string;
@@ -14,7 +14,7 @@ export class ContextGenerationModal extends Modal {
 
   constructor(
     app: App,
-    plugin: CortexPlugin,
+    plugin: ObsidiBotPlugin,
     contextFilePath: string,
     binaryPath: string,
     vaultRoot: string,
@@ -69,7 +69,7 @@ export class ContextGenerationModal extends Modal {
   }
 
   private async generateContextFile() {
-    new Notice('Cortex: generating context file in the background…');
+    new Notice('ObsidiBot: generating context file in the background…');
     log('ContextGenerationModal: spawning background generation');
 
     const tree = buildVaultTree(this.app.vault, this.vaultTreeDepth);
@@ -78,12 +78,12 @@ export class ContextGenerationModal extends Modal {
       : 'The vault structure is not available — please explore with your file tools.';
 
     const prompt = [
-      `You are setting up a context file for a new Cortex (Obsidian plugin) user.`,
+      `You are setting up a context file for a new ObsidiBot (Obsidian plugin) user.`,
       ``,
       `${treeSection}`,
       ``,
       `Please create the file \`${this.contextFilePath}\` in the vault root.`,
-      `This file will be injected at the start of every Cortex session as your persistent memory.`,
+      `This file will be injected at the start of every ObsidiBot session as your persistent memory.`,
       ``,
       `Generate a concise, useful context file (aim for under 300 words) that includes:`,
       `- A brief summary of the vault's organisation based on the folder structure`,
@@ -110,14 +110,14 @@ export class ContextGenerationModal extends Modal {
       onDone: () => {
         const exists = this.app.vault.getFileByPath(this.contextFilePath);
         if (exists) {
-          new Notice(`Cortex: context file created at "${this.contextFilePath}". Open it in Obsidian to review and edit.`);
+          new Notice(`ObsidiBot: context file created at "${this.contextFilePath}". Open it in Obsidian to review and edit.`);
         } else {
-          new Notice(`Cortex: generation finished but "${this.contextFilePath}" was not found. You may need to create it manually.`);
+          new Notice(`ObsidiBot: generation finished but "${this.contextFilePath}" was not found. You may need to create it manually.`);
         }
       },
       onError: (err) => {
         log('ContextGenerationModal: error:', err);
-        new Notice('Cortex: context file generation encountered an error. Check the debug log.');
+        new Notice('ObsidiBot: context file generation encountered an error. Check the debug log.');
       },
     });
   }
@@ -126,7 +126,7 @@ export class ContextGenerationModal extends Modal {
     const stub = [
       '# Vault Context',
       '',
-      'This file is injected at the start of every Cortex session as Claude\'s persistent memory.',
+      'This file is injected at the start of every ObsidiBot session as Claude\'s persistent memory.',
       'Edit it freely — add conventions, ongoing projects, folder explanations, or anything useful.',
       '',
       '## Conventions',
@@ -141,10 +141,10 @@ export class ContextGenerationModal extends Modal {
 
     try {
       await this.app.vault.create(this.contextFilePath, stub);
-      new Notice(`Cortex: created blank context file at "${this.contextFilePath}".`);
+      new Notice(`ObsidiBot: created blank context file at "${this.contextFilePath}".`);
     } catch (err) {
       log('ContextGenerationModal: failed to create blank template:', err);
-      new Notice('Cortex: failed to create context file. Check the debug log.');
+      new Notice('ObsidiBot: failed to create context file. Check the debug log.');
     }
   }
 }

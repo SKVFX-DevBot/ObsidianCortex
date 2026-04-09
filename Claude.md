@@ -1,8 +1,8 @@
-# Claude.md — Cortex
+# Claude.md — ObsidiBot
 ## What
 Obsidian plugin. Core feature: Claude Code CLI as subprocess (NOT API, NOT Agent SDK). No API key for AI — rides Pro/Max sub. Desktop only.
 
-Cortex is not limited to features that involve Claude Code directly. Obsidian-native features (voice input/output, live transcription, canvas, template integration, etc.) are in scope when they enhance the note-taking + AI workflow. New non-Claude features should still fit the "AI-enhanced Obsidian" mission — don't add things just because they're possible.
+ObsidiBot is not limited to features that involve Claude Code directly. Obsidian-native features (voice input/output, live transcription, canvas, template integration, etc.) are in scope when they enhance the note-taking + AI workflow. New non-Claude features should still fit the "AI-enhanced Obsidian" mission — don't add things just because they're possible.
 
 ## Architecture (locked — don't revisit without discussion)
 - `child_process.spawn` → `powershell.exe -NonInteractive -Command "& 'claude.exe' ..."` (Windows/Electron stdout fix)
@@ -14,10 +14,10 @@ Cortex is not limited to features that involve Claude Code directly. Obsidian-na
 - `--resume <sessionId>` on every turn after first; uses cache_read_input_tokens (~10x cheaper)
 - Do NOT prepend history manually — that costs MORE than --resume
 - Vault root = cwd for all spawns
-- Sessions: `.obsidian/cortex/sessions/<id>.json` (metadata only; actual history in `~/.claude/projects/`)
+- Sessions: `.obsidian/obsidibot/sessions/<id>.json` (metadata only; actual history in `~/.claude/projects/`)
 
 ## Current status
-Working: chat panel, markdown rendering, session persistence + history UI, session resume + history display, context injection (vault tree + context file + per-note frontmatter), send-on-enter, command palette (13 cmds), export/copy, session export to vault (active session via command palette, any past session via download icon in session manager — hover to reveal — YAML frontmatter + screenplay-style markdown transcript with ephemeral name detection, configurable export folder), per-turn token stats (out · in · cached), token logging, autonomous memory setting, remote session detection, configurable vault tree depth (0=off, 1-10=N levels, -1=unlimited), stdin-based prompt delivery (fixes smart-quote/special-char bugs on Windows), @-mention note injection, file/URL attachment, image/PDF attachment (file picker + clipboard paste + drag-and-drop → saves to `.obsidian/plugins/cortex/tmp/` with unique paste filenames), split-pane context awareness, permission modes (Standard/Read-only/Full access) with denial card + session upgrade, tool call visibility (collapsible), context gauge (SVG ring, click to compact), UI Bridge (@@CORTEX_ACTION protocol: open-file, open-file-split, navigate-heading, show-notice, focus-search, open-settings, run-command), command allowlist + denylist with settings browser + confirmation modal, mid-session allowlist injection, session context refresh command (now re-injects full orientation via buildSessionContext()), command reference file (`.obsidian/plugins/cortex/obsidian-commands.md` generated on layout ready — Claude reads it instead of guessing IDs), log file in plugin dir (`.obsidian/plugins/cortex/cortex-debug.log`), orphaned allowlist entry detection in settings UI, session manager (active session indicator, rename updates panel header on X-close, drag-and-drop reorder with sortOrder persistence, new sessions always inserted at top), vault query protocol (@@CORTEX_QUERY — show mode renders result card for user, inject mode auto-fires --resume turn so Claude can continue reasoning; supports backlinks, outlinks, tags, file-list).
+Working: chat panel, markdown rendering, session persistence + history UI, session resume + history display, context injection (vault tree + context file + per-note frontmatter), send-on-enter, command palette (13 cmds), export/copy, session export to vault (active session via command palette, any past session via download icon in session manager — hover to reveal — YAML frontmatter + screenplay-style markdown transcript with ephemeral name detection, configurable export folder), per-turn token stats (out · in · cached), token logging, autonomous memory setting, remote session detection, configurable vault tree depth (0=off, 1-10=N levels, -1=unlimited), stdin-based prompt delivery (fixes smart-quote/special-char bugs on Windows), @-mention note injection, file/URL attachment, image/PDF attachment (file picker + clipboard paste + drag-and-drop → saves to `.obsidian/plugins/obsidibot/tmp/` with unique paste filenames), split-pane context awareness, permission modes (Standard/Read-only/Full access) with denial card + session upgrade, tool call visibility (collapsible), context gauge (SVG ring, click to compact), UI Bridge (@@CORTEX_ACTION protocol: open-file, open-file-split, navigate-heading, show-notice, focus-search, open-settings, run-command), command allowlist + denylist with settings browser + confirmation modal, mid-session allowlist injection, session context refresh command (now re-injects full orientation via buildSessionContext()), command reference file (`.obsidian/plugins/obsidibot/obsidian-commands.md` generated on layout ready — Claude reads it instead of guessing IDs), log file in plugin dir (`.obsidian/plugins/obsidibot/obsidibot-debug.log`), orphaned allowlist entry detection in settings UI, session manager (active session indicator, rename updates panel header on X-close, drag-and-drop reorder with sortOrder persistence, new sessions always inserted at top), vault query protocol (@@CORTEX_QUERY — show mode renders result card for user, inject mode auto-fires --resume turn so Claude can continue reasoning; supports backlinks, outlinks, tags, file-list).
 
 Remaining: FrontmatterGuard.ts write-protection (blocked: Claude Code doesn't support per-tool-call approval in --print mode), inline diff preview (same constraint), pinned context files UI (backburned), export button in chat panel toolbar (#56), misleading "Interrupted." message when Claude fires only UI bridge actions with no text (#76).
 
@@ -48,7 +48,7 @@ Test vault: `D:\2\deleteme` (symlinked to plugin dir).
 - No auto-commit/push.
 - Not fluent in TS — I do implementation.
 - Multi-machine (Windows). Keep notes resumable cold.
-- Project = "Cortex" (not "Cortex plugin", not "obsidian-claude").
+- Project = "ObsidiBot" (not "ObsidiBot plugin", not "obsidian-claude").
 
 ## Build
 ```bash

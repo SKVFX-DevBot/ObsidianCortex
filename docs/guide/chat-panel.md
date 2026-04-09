@@ -1,6 +1,6 @@
 # Chat Panel
 
-The chat panel opens as a sidebar. Type your message and press **Enter** to send. Use **Shift+Enter** to insert a newline without sending. The "Send on Enter" behaviour can be toggled in **Settings → Cortex**.
+The chat panel opens as a sidebar. Type your message and press **Enter** to send. Use **Shift+Enter** to insert a newline without sending. The "Send on Enter" behaviour can be toggled in **Settings → ObsidiBot**.
 
 Claude has access to your full vault — it can read, write, create, move, and organize notes. The vault root is Claude's working directory.
 
@@ -18,28 +18,28 @@ Non-Markdown files (`.fountain`, `.txt`, etc.) show their extension in the dropd
 
 ### Attachment button (paperclip)
 
-| Option | What it does |
-|---|---|
+| Option          | What it does                                                                                                                                                      |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Attach file** | Opens your system file picker. Text files (`.md`, `.txt`, `.js`, etc.) are read inline. Images and PDFs are copied to a temporary folder so Claude can read them. |
-| **Attach URL** | Passes a URL to Claude as-is. Claude fetches or references it based on your message. |
-| **@ Add note** | Opens the same vault note search as the `@` shortcut. |
+| **Attach URL**  | Passes a URL to Claude as-is. Claude fetches or references it based on your message.                                                                              |
+| **@ Add note**  | Opens the same vault note search as the `@` shortcut.                                                                                                             |
 
 ### Paste from clipboard
 
 Paste images directly with **Ctrl+V** / **Cmd+V**:
 
-- **Screenshots** — take a screenshot, paste into Cortex
+- **Screenshots** — take a screenshot, paste into ObsidiBot
 - **Files from Explorer/Finder** — copy a `.png`, `.jpg`, `.gif`, `.webp`, or `.pdf` and paste
 
-Pasted images appear in the context bar. They're saved to `.obsidian/plugins/cortex/tmp/` and are not automatically cleaned up.
+Pasted images appear in the context bar. They're saved to `.obsidian/plugins/obsidibot/tmp/` and are not automatically cleaned up.
 
 ### Drag and drop
 
-Drag any file from your filesystem and drop it onto the Cortex panel. The panel highlights with a dashed border while dragging. Text files are read inline; images and PDFs are handled the same as the file picker.
+Drag any file from your filesystem and drop it onto the ObsidiBot panel. The panel highlights with a dashed border while dragging. Text files are read inline; images and PDFs are handled the same as the file picker.
 
 ### Send selected text
 
-Highlight text in any open note, then run **Cortex: Send selection as context** from the Command Palette (or bind it to a hotkey). The selection is attached as a labeled snippet.
+Highlight text in any open note, then run **ObsidiBot: Send selection as context** from the Command Palette (or bind it to a hotkey). The selection is attached as a labeled snippet.
 
 ---
 
@@ -59,24 +59,24 @@ While Claude is working, tool calls appear above the response bubble in real tim
 
 Claude can execute Obsidian commands directly. Three are pre-approved by default:
 
-| Command | ID |
-|---|---|
-| Quick switcher | `switcher:open` |
-| Daily notes: Open today's | `daily-notes` |
-| Search current file | `editor:open-search` |
+| Command                   | ID                   |
+| ------------------------- | -------------------- |
+| Quick switcher            | `switcher:open`      |
+| Daily notes: Open today's | `daily-notes`        |
+| Search current file       | `editor:open-search` |
 
-You can manage the full list in **Settings → Cortex → UI Bridge & Commands**.
+You can manage the full list in **Settings → ObsidiBot → UI Bridge & Commands**.
 
 ### How permission works
 
-| Situation | What happens |
-|---|---|
-| Command in **allowlist** | Runs immediately |
-| Command **not** in allowlist (prompt mode on) | Modal appears: Allow or Deny, with **Don't ask again** |
-| Allow + Don't ask again | Runs and added to allowlist permanently |
-| Deny + Don't ask again | Added to denylist — future attempts silently blocked |
-| Command in **denylist** | Silently blocked (add to allowlist to re-enable) |
-| Prompt mode off | Unlisted commands hard-blocked with an explanatory notice |
+| Situation                                     | What happens                                              |
+| --------------------------------------------- | --------------------------------------------------------- |
+| Command in **allowlist**                      | Runs immediately                                          |
+| Command **not** in allowlist (prompt mode on) | Modal appears: Allow or Deny, with **Don't ask again**    |
+| Allow + Don't ask again                       | Runs and added to allowlist permanently                   |
+| Deny + Don't ask again                        | Added to denylist — future attempts silently blocked      |
+| Command in **denylist**                       | Silently blocked (add to allowlist to re-enable)          |
+| Prompt mode off                               | Unlisted commands hard-blocked with an explanatory notice |
 
 ---
 

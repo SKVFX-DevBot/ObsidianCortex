@@ -12,7 +12,7 @@ export interface PermissionDenial {
   input: unknown;
 }
 
-/** Maps Cortex permissionMode to Claude CLI args. */
+/** Maps ObsidiBot permissionMode to Claude CLI args. */
 export function permissionArgs(mode: PermissionMode): string[] {
   switch (mode) {
     case 'readonly':

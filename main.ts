@@ -2,14 +2,14 @@ import { Plugin, Notice, WorkspaceLeaf, addIcon } from 'obsidian';
 import { writeFileSync } from 'fs';
 import { join } from 'path';
 import { ClaudeView, VIEW_TYPE_CLAUDE } from './src/ClaudeView';
-import { CortexSettings, DEFAULT_SETTINGS, CortexSettingsTab } from './src/settings';
+import { ObsidiBotSettings, DEFAULT_SETTINGS, ObsidiBotSettingsTab } from './src/settings';
 import { findClaudeBinary } from './src/ClaudeProcess';
 import { resolveShellEnv } from './src/utils/shellEnv';
 import { initLogger, log, warn } from './src/utils/logger';
 import { AboutModal } from './src/modals/AboutModal';
 
-export default class CortexPlugin extends Plugin {
-  settings: CortexSettings;
+export default class ObsidiBotPlugin extends Plugin {
+  settings: ObsidiBotSettings;
   shellEnv: Record<string, string> = {};
   claudeBinaryPath: string | null = null;
 
@@ -22,7 +22,7 @@ export default class CortexPlugin extends Plugin {
       filePath: this.settings.logFilePath,
       verbosity: this.settings.logVerbosity,
     });
-    log('Cortex loading — vault root:', vaultRoot);
+    log('ObsidiBot loading — vault root:', vaultRoot);
 
     this.app.workspace.onLayoutReady(() => this.generateCommandsFile());
 
@@ -30,12 +30,12 @@ export default class CortexPlugin extends Plugin {
     this.claudeBinaryPath = findClaudeBinary(this.settings.binaryPath);
 
     if (!this.claudeBinaryPath) {
-      new Notice('Cortex: claude binary not found. Check plugin settings.');
+      new Notice('ObsidiBot: claude binary not found. Check plugin settings.');
     }
 
-    // Register custom icon — three S-curves suggesting cortex folds (gyri).
+    // Register custom icon — three S-curves suggesting obsidibot folds (gyri).
     // Replace the path data here when the final logo SVG is ready.
-    addIcon('cortex', `
+    addIcon('obsidibot', `
       <path d="M10,32 C24,12 38,12 50,32 C62,52 76,52 90,32"
             stroke="currentColor" fill="none" stroke-width="8" stroke-linecap="round"/>
       <path d="M10,50 C24,30 38,30 50,50 C62,70 76,70 90,50"
@@ -46,12 +46,12 @@ export default class CortexPlugin extends Plugin {
 
     this.registerView(VIEW_TYPE_CLAUDE, (leaf) => new ClaudeView(leaf, this));
 
-    this.addRibbonIcon('brain-circuit', 'Open Cortex agent', () => {
+    this.addRibbonIcon('brain-circuit', 'Open ObsidiBot agent', () => {
       this.activateView();
     });
 
     this.addCommand({
-      id: 'open-cortex-agent',
+      id: 'open-obsidibot-agent',
       name: 'Open agent panel',
       callback: () => {
         this.activateView();
@@ -59,16 +59,16 @@ export default class CortexPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: 'open-cortex-settings',
+      id: 'open-obsidibot-settings',
       name: 'Open settings',
       callback: () => {
         (this.app as any).setting.open();
-        (this.app as any).setting.openTabById('cortex');
+        (this.app as any).setting.openTabById('obsidibot');
       }
     });
 
     this.addCommand({
-      id: 'new-cortex-session',
+      id: 'new-obsidibot-session',
       name: 'New session',
       callback: () => {
         this.newSession();
@@ -76,7 +76,7 @@ export default class CortexPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: 'clear-cortex-session',
+      id: 'clear-obsidibot-session',
       name: 'Clear current session',
       callback: () => {
         this.clearCurrentSession();
@@ -84,15 +84,15 @@ export default class CortexPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: 'toggle-cortex-panel',
-      name: 'Toggle Cortex panel',
+      id: 'toggle-obsidibot-panel',
+      name: 'Toggle ObsidiBot panel',
       callback: () => {
         this.togglePanel();
       }
     });
 
     this.addCommand({
-      id: 'show-cortex-session-history',
+      id: 'show-obsidibot-session-history',
       name: 'Show session history',
       callback: () => {
         this.showSessionHistory();
@@ -100,7 +100,7 @@ export default class CortexPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: 'export-cortex-conversation',
+      id: 'export-obsidibot-conversation',
       name: 'Export conversation',
       callback: () => {
         this.exportConversation();
@@ -108,7 +108,7 @@ export default class CortexPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: 'export-cortex-to-vault',
+      id: 'export-obsidibot-to-vault',
       name: 'Export session to vault',
       callback: () => {
         this.exportToVault();
@@ -116,7 +116,7 @@ export default class CortexPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: 'copy-cortex-last-response',
+      id: 'copy-obsidibot-last-response',
       name: 'Copy last response',
       callback: () => {
         this.copyLastResponse();
@@ -124,7 +124,7 @@ export default class CortexPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: 'send-selection-to-cortex',
+      id: 'send-selection-to-obsidibot',
       name: 'Send selection as context',
       editorCallback: (editor) => {
         const selection = editor.getSelection();
@@ -148,7 +148,7 @@ export default class CortexPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: 'focus-cortex-input',
+      id: 'focus-obsidibot-input',
       name: 'Focus chat input',
       callback: () => {
         this.focusChatInput();
@@ -156,7 +156,7 @@ export default class CortexPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: 'open-cortex-context-file',
+      id: 'open-obsidibot-context-file',
       name: 'Open context file',
       callback: () => {
         this.openContextFile();
@@ -164,7 +164,7 @@ export default class CortexPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: 'refresh-cortex-context',
+      id: 'refresh-obsidibot-context',
       name: 'Refresh session context',
       callback: () => {
         const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_CLAUDE);
@@ -177,14 +177,14 @@ export default class CortexPlugin extends Plugin {
     });
 
     this.addCommand({
-      id: 'show-cortex-about',
-      name: 'About Cortex',
+      id: 'show-obsidibot-about',
+      name: 'About ObsidiBot',
       callback: () => {
         this.showAbout();
       }
     });
 
-    this.addSettingTab(new CortexSettingsTab(this.app, this));
+    this.addSettingTab(new ObsidiBotSettingsTab(this.app, this));
   }
 
   onunload() {
@@ -319,7 +319,7 @@ export default class CortexPlugin extends Plugin {
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
     // Migrate old vault-root log path to plugin directory
-    if (this.settings.logFilePath === '_cortex-debug.log') {
+    if (this.settings.logFilePath === '_obsidibot-debug.log') {
       this.settings.logFilePath = DEFAULT_SETTINGS.logFilePath;
       await this.saveSettings();
     }
@@ -332,7 +332,7 @@ export default class CortexPlugin extends Plugin {
   generateCommandsFile() {
     try {
       const vaultRoot = (this.app.vault.adapter as any).basePath;
-      const outPath = join(vaultRoot, '.obsidian', 'plugins', 'cortex', 'obsidian-commands.md');
+      const outPath = join(vaultRoot, '.obsidian', 'plugins', 'obsidibot', 'obsidian-commands.md');
 
       const commands = Object.values(
         (this.app as any).commands.commands as Record<string, { id: string; name: string }>

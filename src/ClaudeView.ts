@@ -2,7 +2,7 @@ import { ItemView, WorkspaceLeaf, MarkdownRenderer, Notice, setIcon, TFile, Moda
 import { spawn } from 'child_process';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
-import type CortexPlugin from '../main';
+import type ObsidiBotPlugin from '../main';
 import { spawnClaude, parseStreamOutput, killProcess, findClaudeBinary, PermissionDenial, PermissionMode } from './ClaudeProcess';
 import { extractActions, executeAction } from './UIBridge';
 import { VaultQuery, VaultQueryResult, resolveQuery, queryLabel, buildInjectMessage } from './QueryHandler';
@@ -24,7 +24,7 @@ import { ExportToVaultModal } from './modals/ExportToVaultModal';
 import { ContextGenerationModal } from './ContextGenerationModal';
 import { AboutModal } from './modals/AboutModal';
 
-export const VIEW_TYPE_CLAUDE = 'cortex-chat';
+export const VIEW_TYPE_CLAUDE = 'obsidibot-chat';
 
 // Maps from lowercase tool name to display values.
 // Claude Code sends PascalCase names (Read, Write, Bash…) so we normalise to lowercase for lookup.
@@ -61,7 +61,7 @@ const TOOL_ICONS: Record<string, string> = {
 
 
 export class ClaudeView extends ItemView {
-  plugin: CortexPlugin;
+  plugin: ObsidiBotPlugin;
   private inputEl: HTMLTextAreaElement;
   private messagesEl: HTMLElement;
   private sendBtn: HTMLButtonElement;
@@ -89,65 +89,65 @@ export class ClaudeView extends ItemView {
   static readonly CONTEXT_WINDOW = 200_000;
   private atDropdownIndex = -1;
 
-  constructor(leaf: WorkspaceLeaf, plugin: CortexPlugin) {
+  constructor(leaf: WorkspaceLeaf, plugin: ObsidiBotPlugin) {
     super(leaf);
     this.plugin = plugin;
   }
 
   getViewType(): string { return VIEW_TYPE_CLAUDE; }
-  getDisplayText(): string { return 'Cortex'; }
+  getDisplayText(): string { return 'ObsidiBot'; }
   getIcon(): string { return 'brain-circuit'; }
 
   async onOpen() {
     const root = this.containerEl.children[1] as HTMLElement;
     root.empty();
-    root.addClass('cortex-view');
+    root.addClass('obsidibot-view');
 
-    const toolbar = root.createDiv({ cls: 'cortex-toolbar' });
-    this.sessionStatusEl = toolbar.createSpan({ cls: 'cortex-session-status', text: 'New session' });
+    const toolbar = root.createDiv({ cls: 'obsidibot-toolbar' });
+    this.sessionStatusEl = toolbar.createSpan({ cls: 'obsidibot-session-status', text: 'New session' });
     this.sessionStatusEl.addEventListener('click', () => this.showSessionHistory());
     this.sessionStatusEl.title = 'Click to see session history';
 
-    const newSessionBtn = toolbar.createEl('button', { cls: 'cortex-icon-btn' });
+    const newSessionBtn = toolbar.createEl('button', { cls: 'obsidibot-icon-btn' });
     setIcon(newSessionBtn, 'message-square-plus');
     newSessionBtn.title = 'New session';
     newSessionBtn.addEventListener('click', () => this.startNewSession());
 
     // Spacer pushes help/settings to the right
-    toolbar.createDiv({ cls: 'cortex-toolbar-spacer' });
+    toolbar.createDiv({ cls: 'obsidibot-toolbar-spacer' });
 
-    const toolbarRight = toolbar.createDiv({ cls: 'cortex-toolbar-right' });
+    const toolbarRight = toolbar.createDiv({ cls: 'obsidibot-toolbar-right' });
 
-    const helpBtn = toolbarRight.createEl('button', { cls: 'cortex-icon-btn' });
+    const helpBtn = toolbarRight.createEl('button', { cls: 'obsidibot-icon-btn' });
     setIcon(helpBtn, 'circle-help');
-    helpBtn.title = 'About Cortex';
+    helpBtn.title = 'About ObsidiBot';
     helpBtn.addEventListener('click', () => {
       new AboutModal(this.app, this.plugin).open();
     });
 
-    const settingsBtn = toolbarRight.createEl('button', { cls: 'cortex-icon-btn' });
+    const settingsBtn = toolbarRight.createEl('button', { cls: 'obsidibot-icon-btn' });
     //setIcon(settingsBtn, 'settings');
     setIcon(settingsBtn, 'brain-cog');
-    settingsBtn.title = 'Open Cortex settings';
+    settingsBtn.title = 'Open ObsidiBot settings';
     settingsBtn.addEventListener('click', () => {
       (this.app as any).setting.open();
-      (this.app as any).setting.openTabById('cortex');
+      (this.app as any).setting.openTabById('obsidibot');
     });
 
-    this.messagesEl = root.createDiv({ cls: 'cortex-messages' });
+    this.messagesEl = root.createDiv({ cls: 'obsidibot-messages' });
 
-    const inputArea = root.createDiv({ cls: 'cortex-input-area' });
+    const inputArea = root.createDiv({ cls: 'obsidibot-input-area' });
 
-    this.atDropdownEl = inputArea.createDiv({ cls: 'cortex-at-dropdown' });
+    this.atDropdownEl = inputArea.createDiv({ cls: 'obsidibot-at-dropdown' });
     this.atDropdownEl.style.display = 'none';
 
-    this.attachPopoverEl = inputArea.createDiv({ cls: 'cortex-attach-popover' });
+    this.attachPopoverEl = inputArea.createDiv({ cls: 'obsidibot-attach-popover' });
     this.attachPopoverEl.style.display = 'none';
-    const attachFileBtn = this.attachPopoverEl.createEl('button', { cls: 'cortex-attach-option', text: '📄  Attach file' });
+    const attachFileBtn = this.attachPopoverEl.createEl('button', { cls: 'obsidibot-attach-option', text: '📄  Attach file' });
     attachFileBtn.addEventListener('mousedown', (e) => { e.preventDefault(); this.closeAttachPopover(); this.openFilePicker(); });
-    const attachUrlBtn = this.attachPopoverEl.createEl('button', { cls: 'cortex-attach-option', text: '🔗  URL' });
+    const attachUrlBtn = this.attachPopoverEl.createEl('button', { cls: 'obsidibot-attach-option', text: '🔗  URL' });
     attachUrlBtn.addEventListener('mousedown', (e) => { e.preventDefault(); this.closeAttachPopover(); new AttachUrlModal(this.app, (url) => this.attachUrl(url)).open(); });
-    const attachAtBtn = this.attachPopoverEl.createEl('button', { cls: 'cortex-attach-option', text: '@ Add note' });
+    const attachAtBtn = this.attachPopoverEl.createEl('button', { cls: 'obsidibot-attach-option', text: '@ Add note' });
     attachAtBtn.addEventListener('mousedown', (e) => {
       e.preventDefault(); this.closeAttachPopover();
       this.inputEl.focus();
@@ -156,27 +156,27 @@ export class ClaudeView extends ItemView {
       this.inputEl.dispatchEvent(new Event('input'));
     });
 
-    this.pendingContextZone = inputArea.createDiv({ cls: 'cortex-pending-context' });
+    this.pendingContextZone = inputArea.createDiv({ cls: 'obsidibot-pending-context' });
     this.pendingContextZone.style.display = 'none';
 
     this.inputEl = inputArea.createEl('textarea', {
-      cls: 'cortex-input',
-      attr: { placeholder: 'Ask Cortex…', rows: '3' },
+      cls: 'obsidibot-input',
+      attr: { placeholder: 'Ask ObsidiBot…', rows: '3' },
     });
 
-    const inputToolbar = inputArea.createDiv({ cls: 'cortex-input-toolbar' });
+    const inputToolbar = inputArea.createDiv({ cls: 'obsidibot-input-toolbar' });
 
-    const attachBtn = inputToolbar.createEl('button', { cls: 'cortex-icon-btn cortex-input-toolbar-btn' });
+    const attachBtn = inputToolbar.createEl('button', { cls: 'obsidibot-icon-btn obsidibot-input-toolbar-btn' });
     setIcon(attachBtn, 'paperclip');
     attachBtn.title = 'Attach file or URL';
     attachBtn.addEventListener('click', () => this.toggleAttachPopover(attachBtn));
 
-    const slashBtn = inputToolbar.createEl('button', { cls: 'cortex-icon-btn cortex-input-toolbar-btn' });
+    const slashBtn = inputToolbar.createEl('button', { cls: 'obsidibot-icon-btn obsidibot-input-toolbar-btn' });
     setIcon(slashBtn, 'slash');
     slashBtn.title = 'Slash commands (coming soon)';
     slashBtn.disabled = true;
 
-    inputToolbar.createDiv({ cls: 'cortex-input-toolbar-spacer' });
+    inputToolbar.createDiv({ cls: 'obsidibot-input-toolbar-spacer' });
 
     // Token gauge — SVG ring showing context window usage
     const NS = 'http://www.w3.org/2000/svg';
@@ -184,15 +184,15 @@ export class ClaudeView extends ItemView {
     const svg = document.createElementNS(NS, 'svg') as SVGElement;
     svg.setAttribute('width', '18'); svg.setAttribute('height', '18');
     svg.setAttribute('viewBox', '0 0 18 18');
-    svg.classList.add('cortex-token-gauge');
+    svg.classList.add('obsidibot-token-gauge');
     const svgTitle = document.createElementNS(NS, 'title');
     svg.appendChild(svgTitle);
     const track = document.createElementNS(NS, 'circle');
     track.setAttribute('cx', '9'); track.setAttribute('cy', '9'); track.setAttribute('r', String(R));
-    track.classList.add('cortex-gauge-track');
+    track.classList.add('obsidibot-gauge-track');
     const arc = document.createElementNS(NS, 'circle');
     arc.setAttribute('cx', '9'); arc.setAttribute('cy', '9'); arc.setAttribute('r', String(R));
-    arc.classList.add('cortex-gauge-arc');
+    arc.classList.add('obsidibot-gauge-arc');
     arc.setAttribute('stroke-dasharray', String(C));
     arc.setAttribute('stroke-dashoffset', String(C));
     svg.appendChild(track); svg.appendChild(arc);
@@ -201,7 +201,7 @@ export class ClaudeView extends ItemView {
     inputToolbar.appendChild(svg);
     this.tokenGaugeEl = svg;
 
-    this.sendBtn = inputToolbar.createEl('button', { cls: 'cortex-icon-btn cortex-send' });
+    this.sendBtn = inputToolbar.createEl('button', { cls: 'obsidibot-icon-btn obsidibot-send' });
     setIcon(this.sendBtn, 'arrow-up');
     this.sendBtn.title = 'Send message';
 
@@ -274,14 +274,14 @@ export class ClaudeView extends ItemView {
       if (!e.dataTransfer?.types.includes('Files')) return;
       e.preventDefault();
       e.dataTransfer.dropEffect = 'copy';
-      root.classList.add('cortex-drag-over');
+      root.classList.add('obsidibot-drag-over');
     });
     root.addEventListener('dragleave', (e: DragEvent) => {
       // Only clear highlight when leaving the panel entirely (relatedTarget is outside root)
-      if (!root.contains(e.relatedTarget as Node)) root.classList.remove('cortex-drag-over');
+      if (!root.contains(e.relatedTarget as Node)) root.classList.remove('obsidibot-drag-over');
     });
     root.addEventListener('drop', (e: DragEvent) => {
-      root.classList.remove('cortex-drag-over');
+      root.classList.remove('obsidibot-drag-over');
       if (!e.dataTransfer?.files.length) return;
       e.preventDefault();
       void this.handleDroppedFiles(e.dataTransfer.files);
@@ -379,13 +379,13 @@ export class ClaudeView extends ItemView {
   /** Build export markdown from DOM messages (active session). */
   private buildExportMarkdown(title: string, sessionId: string, userLabel: string, assistantLabel: string): string {
     const msgEls = Array.from(
-      this.messagesEl.querySelectorAll('.cortex-message.cortex-user, .cortex-message.cortex-assistant')
+      this.messagesEl.querySelectorAll('.obsidibot-message.obsidibot-user, .obsidibot-message.obsidibot-assistant')
     ) as HTMLElement[];
     const date = new Date().toISOString().slice(0, 10);
-    let md = `---\ncortex_session: true\ndate: ${date}\nsession_id: ${sessionId}\nmessages: ${msgEls.length}\n---\n\n`;
+    let md = `---\nobsidibot_session: true\ndate: ${date}\nsession_id: ${sessionId}\nmessages: ${msgEls.length}\n---\n\n`;
     md += `# ${title}\n\n`;
     for (const el of msgEls) {
-      const label = el.classList.contains('cortex-user') ? userLabel : assistantLabel;
+      const label = el.classList.contains('obsidibot-user') ? userLabel : assistantLabel;
       const content = (el.dataset.markdown ?? el.textContent ?? '').trim();
       md += `**${label}:**\n${content}\n\n`;
     }
@@ -411,9 +411,9 @@ export class ClaudeView extends ItemView {
 
   /** Export the currently visible session to a vault note. */
   async exportToVault(): Promise<void> {
-    const messages = this.messagesEl.querySelectorAll('.cortex-message');
+    const messages = this.messagesEl.querySelectorAll('.obsidibot-message');
     if (messages.length === 0) { new Notice('No conversation to export'); return; }
-    const title = this.currentSessionTitle || 'Cortex Session';
+    const title = this.currentSessionTitle || 'ObsidiBot Session';
     const sessionId = this.currentSessionId ?? '';
     const date = new Date().toISOString().slice(0, 10);
     const safeName = title.replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim();
@@ -438,10 +438,10 @@ export class ClaudeView extends ItemView {
     const defaultPath = folder ? `${folder}/${safeName} ${date}.md` : `${safeName} ${date}.md`;
     new ExportToVaultModal(this.app, defaultPath, async (notePath) => {
       const dateStr = new Date(session.updatedAt).toISOString().slice(0, 10);
-      let md = `---\ncortex_session: true\ndate: ${dateStr}\nsession_id: ${session.claudeSessionId}\nmessages: ${messages.length}\n---\n\n`;
+      let md = `---\nobsidibot_session: true\ndate: ${dateStr}\nsession_id: ${session.claudeSessionId}\nmessages: ${messages.length}\n---\n\n`;
       md += `# ${session.title}\n\n`;
       for (const msg of messages) {
-        const label = msg.role === 'user' ? (session.userLabel ?? 'User') : (session.assistantLabel ?? 'Cortex');
+        const label = msg.role === 'user' ? (session.userLabel ?? 'User') : (session.assistantLabel ?? 'ObsidiBot');
         md += `**${label}:**\n${msg.content.trim()}\n\n`;
       }
       await this.writeExportNote(notePath, md);
@@ -456,20 +456,20 @@ export class ClaudeView extends ItemView {
   }
 
   exportConversation() {
-    const messages = this.messagesEl.querySelectorAll('.cortex-message');
+    const messages = this.messagesEl.querySelectorAll('.obsidibot-message');
     if (messages.length === 0) {
       new Notice('No conversation to export');
       return;
     }
 
-    let markdown = `# Cortex Conversation\n`;
+    let markdown = `# ObsidiBot Conversation\n`;
     if (this.currentSessionTitle) {
       markdown += `**Session:** ${this.currentSessionTitle}\n\n`;
     }
 
     messages.forEach((msgEl) => {
-      const role = msgEl.classList.contains('cortex-user') ? 'User' :
-        msgEl.classList.contains('cortex-assistant') ? 'Cortex' : 'System';
+      const role = msgEl.classList.contains('obsidibot-user') ? 'User' :
+        msgEl.classList.contains('obsidibot-assistant') ? 'ObsidiBot' : 'System';
       // Use stored raw markdown for assistant messages; textContent for others
       const content = (msgEl as HTMLElement).dataset.markdown ?? msgEl.textContent ?? '';
       markdown += `## ${role}\n\n${content}\n\n`;
@@ -485,7 +485,7 @@ export class ClaudeView extends ItemView {
   }
 
   copyLastResponse() {
-    const messages = this.messagesEl.querySelectorAll('.cortex-message.cortex-assistant');
+    const messages = this.messagesEl.querySelectorAll('.obsidibot-message.obsidibot-assistant');
     if (messages.length === 0) {
       new Notice('No assistant responses found');
       return;
@@ -570,11 +570,11 @@ export class ClaudeView extends ItemView {
 
   /** Ask Claude to identify the human and AI names from the visible conversation. */
   private queryConversationLabels(): Promise<{ userLabel: string; assistantLabel: string }> {
-    const defaults = { userLabel: 'User', assistantLabel: 'Cortex' };
+    const defaults = { userLabel: 'User', assistantLabel: 'ObsidiBot' };
     if (!this.plugin.claudeBinaryPath) return Promise.resolve(defaults);
 
     const msgEls = Array.from(
-      this.messagesEl.querySelectorAll('.cortex-message.cortex-user, .cortex-message.cortex-assistant')
+      this.messagesEl.querySelectorAll('.obsidibot-message.obsidibot-user, .obsidibot-message.obsidibot-assistant')
     ) as HTMLElement[];
     if (msgEls.length === 0) return Promise.resolve(defaults);
 
@@ -584,7 +584,7 @@ export class ClaudeView extends ItemView {
     const lines: string[] = [];
     let used = 0;
     for (const el of msgEls) {
-      const role = el.classList.contains('cortex-user') ? 'Human' : 'AI';
+      const role = el.classList.contains('obsidibot-user') ? 'Human' : 'AI';
       const content = (el.dataset.markdown ?? el.textContent ?? '').trim().substring(0, 400);
       const line = `${role}: ${content}`;
       if (used + line.length > BUDGET) break;
@@ -598,7 +598,7 @@ export class ClaudeView extends ItemView {
       `Respond with exactly two lines — substitute the actual names from the conversation:\n` +
       `user: Sally\n` +
       `assistant: Banana\n` +
-      `If the human has no name use "User"; if the AI has no name use "Cortex". No other text.\n\n` +
+      `If the human has no name use "User"; if the AI has no name use "ObsidiBot". No other text.\n\n` +
       sample;
 
     return new Promise((resolve) => {
@@ -624,7 +624,7 @@ export class ClaudeView extends ItemView {
             const assistantMatch = /^assistant:\s*(.+)$/mi.exec(responseText);
             resolve({
               userLabel: userMatch?.[1]?.trim() ?? 'User',
-              assistantLabel: assistantMatch?.[1]?.trim() ?? 'Cortex',
+              assistantLabel: assistantMatch?.[1]?.trim() ?? 'ObsidiBot',
             });
           },
         });
@@ -668,7 +668,7 @@ export class ClaudeView extends ItemView {
             await MarkdownRenderer.render(this.app, clean, el, '', this);
           }
         }
-        const divider = this.messagesEl.createDiv({ cls: 'cortex-history-divider' });
+        const divider = this.messagesEl.createDiv({ cls: 'obsidibot-history-divider' });
         divider.setText('─── resuming here ───');
         divider.scrollIntoView({ behavior: 'instant' });
       } else {
@@ -708,7 +708,7 @@ export class ClaudeView extends ItemView {
     if (!prompt) return;
 
     if (!this.plugin.claudeBinaryPath) {
-      this.appendMessage('system', 'Claude binary not found. Check Cortex settings.');
+      this.appendMessage('system', 'Claude binary not found. Check ObsidiBot settings.');
       return;
     }
 
@@ -725,15 +725,15 @@ export class ClaudeView extends ItemView {
     this.appendMessage('user', prompt);
 
     // Response group: tool events (above) + assistant bubble + token stats (below)
-    const responseGroupEl = this.messagesEl.createDiv({ cls: 'cortex-response-group' });
-    const toolEventsEl = responseGroupEl.createDiv({ cls: 'cortex-tool-events' });
+    const responseGroupEl = this.messagesEl.createDiv({ cls: 'obsidibot-response-group' });
+    const toolEventsEl = responseGroupEl.createDiv({ cls: 'obsidibot-tool-events' });
     toolEventsEl.style.display = 'none';
-    const assistantEl = responseGroupEl.createDiv({ cls: 'cortex-message cortex-assistant' });
-    const statusEl = assistantEl.createSpan({ cls: 'cortex-status', text: 'Thinking…' });
+    const assistantEl = responseGroupEl.createDiv({ cls: 'obsidibot-message obsidibot-assistant' });
+    const statusEl = assistantEl.createSpan({ cls: 'obsidibot-status', text: 'Thinking…' });
     // Separate span for streaming text so statusEl is preserved as a sibling and can be
     // re-appended when tool calls fire after text has already been streamed (fix for #67).
-    const streamingTextEl = assistantEl.createSpan({ cls: 'cortex-streaming-text' });
-    const tokenStatsEl = responseGroupEl.createDiv({ cls: 'cortex-token-stats' });
+    const streamingTextEl = assistantEl.createSpan({ cls: 'obsidibot-streaming-text' });
+    const tokenStatsEl = responseGroupEl.createDiv({ cls: 'obsidibot-token-stats' });
     tokenStatsEl.style.display = 'none';
     this.scrollToBottom();
 
@@ -864,11 +864,11 @@ export class ClaudeView extends ItemView {
         log('onToolCall —', tool, JSON.stringify(input).substring(0, 120));
         toolCallCount++;
         if (toolEventsEl.style.display === 'none') toolEventsEl.style.display = 'flex';
-        const row = toolEventsEl.createDiv({ cls: 'cortex-tool-event' });
-        const iconEl = row.createSpan({ cls: 'cortex-tool-event-icon' });
+        const row = toolEventsEl.createDiv({ cls: 'obsidibot-tool-event' });
+        const iconEl = row.createSpan({ cls: 'obsidibot-tool-event-icon' });
         setIcon(iconEl, TOOL_ICONS[key] ?? 'zap');
         const detail = extractToolDetail(key, input);
-        row.createSpan({ cls: 'cortex-tool-event-label', text: detail ? `${tool}: ${detail}` : tool });
+        row.createSpan({ cls: 'obsidibot-tool-event-label', text: detail ? `${tool}: ${detail}` : tool });
         this.scrollToBottom();
       },
       onPermissionDenied: (denials) => {
@@ -926,11 +926,11 @@ export class ClaudeView extends ItemView {
 
         // Collapse tool events into a toggle
         if (toolCallCount > 0) {
-          const rows = Array.from(toolEventsEl.querySelectorAll('.cortex-tool-event')) as HTMLElement[];
+          const rows = Array.from(toolEventsEl.querySelectorAll('.obsidibot-tool-event')) as HTMLElement[];
           rows.forEach(r => { r.style.display = 'none'; });
           const s = toolCallCount === 1 ? '' : 's';
           const toggle = toolEventsEl.createEl('button', {
-            cls: 'cortex-tool-toggle',
+            cls: 'obsidibot-tool-toggle',
             text: `${toolCallCount} tool call${s} ▶`,
           });
           toolEventsEl.insertBefore(toggle, toolEventsEl.firstChild);
@@ -1012,55 +1012,55 @@ export class ClaudeView extends ItemView {
     this.sendBtn.disabled = true;
 
     const isWin = process.platform === 'win32';
-    const card = this.messagesEl.createDiv({ cls: 'cortex-setup-card' });
+    const card = this.messagesEl.createDiv({ cls: 'obsidibot-setup-card' });
 
-    card.createEl('h3', { text: 'ERROR: Claude Code not found', cls: 'cortex-setup-title' });
+    card.createEl('h3', { text: 'ERROR: Claude Code not found', cls: 'obsidibot-setup-title' });
     card.createEl('p', {
-      text: 'Cortex requires the Claude Code CLI (included with Claude Pro/Max). ' +
+      text: 'ObsidiBot requires the Claude Code CLI (included with Claude Pro/Max). ' +
         'Follow the steps below, then click Check again.',
-      cls: 'cortex-setup-intro',
+      cls: 'obsidibot-setup-intro',
     });
 
     // Step 1 — Install
-    const step1 = card.createDiv({ cls: 'cortex-setup-step' });
-    step1.createEl('p', { text: 'Step 1 — Install Claude Code', cls: 'cortex-setup-step-title' });
+    const step1 = card.createDiv({ cls: 'obsidibot-setup-step' });
+    step1.createEl('p', { text: 'Step 1 — Install Claude Code', cls: 'obsidibot-setup-step-title' });
     if (isWin) {
-      step1.createEl('p', { text: 'Open PowerShell (not WSL, not Command Prompt) and run:', cls: 'cortex-setup-note' });
+      step1.createEl('p', { text: 'Open PowerShell (not WSL, not Command Prompt) and run:', cls: 'obsidibot-setup-note' });
       this.renderCodeRow(step1, 'irm https://claude.ai/install.ps1 | iex');
     } else {
-      step1.createEl('p', { text: 'Run in your terminal:', cls: 'cortex-setup-note' });
+      step1.createEl('p', { text: 'Run in your terminal:', cls: 'obsidibot-setup-note' });
       this.renderCodeRow(step1, 'curl -fsSL https://claude.ai/install.sh | bash');
     }
 
     // Step 2 — Verify
-    const step2 = card.createDiv({ cls: 'cortex-setup-step' });
+    const step2 = card.createDiv({ cls: 'obsidibot-setup-step' });
     step2.createEl('p', {
       text: `Step 2 — Verify (run in ${isWin ? 'PowerShell' : 'terminal'})`,
-      cls: 'cortex-setup-step-title',
+      cls: 'obsidibot-setup-step-title',
     });
     this.renderCodeRow(step2, 'claude --version');
 
     // Step 3 — Authenticate
-    const step3 = card.createDiv({ cls: 'cortex-setup-step' });
-    step3.createEl('p', { text: 'Step 3 — Log in', cls: 'cortex-setup-step-title' });
+    const step3 = card.createDiv({ cls: 'obsidibot-setup-step' });
+    step3.createEl('p', { text: 'Step 3 — Log in', cls: 'obsidibot-setup-step-title' });
     step3.createEl('p', {
       text: 'This opens a browser window to authenticate with your Claude account (Pro or Max required):',
-      cls: 'cortex-setup-note',
+      cls: 'obsidibot-setup-note',
     });
     this.renderCodeRow(step3, 'claude login');
 
     // Already installed? Override path
-    const pathSection = card.createDiv({ cls: 'cortex-setup-step' });
+    const pathSection = card.createDiv({ cls: 'obsidibot-setup-step' });
     pathSection.createEl('p', {
       text: 'Already installed and still seeing this?',
-      cls: 'cortex-setup-step-title',
+      cls: 'obsidibot-setup-step-title',
     });
     pathSection.createEl('p', {
       text: 'Claude Code may not be on the auto-detected PATH. Enter the full path to your claude binary below, then click Check again.',
-      cls: 'cortex-setup-note',
+      cls: 'obsidibot-setup-note',
     });
-    const pathRow = pathSection.createDiv({ cls: 'cortex-setup-code-row' });
-    const pathInput = pathRow.createEl('input', { cls: 'cortex-setup-path-input' });
+    const pathRow = pathSection.createDiv({ cls: 'obsidibot-setup-code-row' });
+    const pathInput = pathRow.createEl('input', { cls: 'obsidibot-setup-path-input' });
     pathInput.type = 'text';
     pathInput.placeholder = isWin ? 'C:\\Users\\you\\AppData\\Local\\Programs\\claude\\claude.exe' : '/usr/local/bin/claude';
     pathInput.value = this.plugin.settings.binaryPath ?? '';
@@ -1070,17 +1070,17 @@ export class ClaudeView extends ItemView {
     });
 
     // Action buttons
-    const btnRow = card.createDiv({ cls: 'cortex-setup-btn-row' });
+    const btnRow = card.createDiv({ cls: 'obsidibot-setup-btn-row' });
 
     const docsLink = btnRow.createEl('a', {
       text: 'Claude Code install guide ↗',
       href: 'https://code.claude.com/docs/en/overview#native-install-recommended',
-      cls: 'cortex-setup-docs-link',
+      cls: 'obsidibot-setup-docs-link',
     });
     docsLink.setAttr('target', '_blank');
     docsLink.setAttr('rel', 'noopener');
 
-    const checkBtn = btnRow.createEl('button', { text: 'Check again', cls: 'mod-cta cortex-setup-check-btn' });
+    const checkBtn = btnRow.createEl('button', { text: 'Check again', cls: 'mod-cta obsidibot-setup-check-btn' });
     checkBtn.addEventListener('click', async () => {
       this.plugin.claudeBinaryPath = findClaudeBinary(this.plugin.settings.binaryPath);
       if (this.plugin.claudeBinaryPath) {
@@ -1090,7 +1090,7 @@ export class ClaudeView extends ItemView {
           text: isWin
             ? 'Still not found. Ensure you installed in PowerShell (not WSL), then restart Obsidian.'
             : 'Still not found. Make sure claude is on your PATH, then restart Obsidian.',
-          cls: 'cortex-setup-error',
+          cls: 'obsidibot-setup-error',
         });
         setTimeout(() => err.remove(), 6000);
       }
@@ -1103,20 +1103,20 @@ export class ClaudeView extends ItemView {
 
   private renderAuthError(el: HTMLElement) {
     el.empty();
-    el.createEl('p', { text: 'ERROR: Claude Code is not authenticated.', cls: 'cortex-setup-step-title' });
+    el.createEl('p', { text: 'ERROR: Claude Code is not authenticated.', cls: 'obsidibot-setup-step-title' });
     el.createEl('p', {
       text: 'Click Open terminal below. Claude Code will launch and open a browser window to log in. ' +
         'If the browser does not open automatically, press c in the terminal to copy the login URL.',
-      cls: 'cortex-setup-note',
+      cls: 'obsidibot-setup-note',
     });
     el.createEl('p', {
       text: 'A Claude Pro or Max subscription is required.',
-      cls: 'cortex-setup-note',
+      cls: 'obsidibot-setup-note',
     });
 
-    const btnRow = el.createDiv({ cls: 'cortex-setup-btn-row' });
+    const btnRow = el.createDiv({ cls: 'obsidibot-setup-btn-row' });
 
-    const loginBtn = btnRow.createEl('button', { text: 'Open terminal', cls: 'mod-cta cortex-setup-check-btn' });
+    const loginBtn = btnRow.createEl('button', { text: 'Open terminal', cls: 'mod-cta obsidibot-setup-check-btn' });
     loginBtn.addEventListener('click', () => {
       const binaryPath = this.plugin.claudeBinaryPath!;
       const isWin = process.platform === 'win32';
@@ -1134,7 +1134,7 @@ export class ClaudeView extends ItemView {
       loginBtn.setText('Opened — log in, then click Done');
       loginBtn.disabled = true;
 
-      const doneBtn = btnRow.createEl('button', { text: 'Done', cls: 'cortex-setup-check-btn' });
+      const doneBtn = btnRow.createEl('button', { text: 'Done', cls: 'obsidibot-setup-check-btn' });
       doneBtn.addEventListener('click', async () => {
         doneBtn.setText('Checking…');
         doneBtn.disabled = true;
@@ -1144,10 +1144,10 @@ export class ClaudeView extends ItemView {
   }
 
   private renderPermissionDenials(denials: PermissionDenial[], container: HTMLElement, retryPrompt: string) {
-    const card = container.createDiv({ cls: 'cortex-permission-card' });
-    card.createEl('p', { cls: 'cortex-permission-title', text: `⚠ ${denials.length} operation${denials.length !== 1 ? 's' : ''} blocked by permission settings` });
+    const card = container.createDiv({ cls: 'obsidibot-permission-card' });
+    card.createEl('p', { cls: 'obsidibot-permission-title', text: `⚠ ${denials.length} operation${denials.length !== 1 ? 's' : ''} blocked by permission settings` });
 
-    const list = card.createEl('ul', { cls: 'cortex-permission-list' });
+    const list = card.createEl('ul', { cls: 'obsidibot-permission-list' });
     for (const d of denials) {
       const detail = extractToolDetail(d.tool.toLowerCase(), d.input);
       list.createEl('li', { text: detail ? `${d.tool}: ${detail}` : d.tool });
@@ -1155,7 +1155,7 @@ export class ClaudeView extends ItemView {
 
     const currentMode = this.sessionPermissionOverride ?? this.plugin.settings.permissionMode;
     if (currentMode !== 'full') {
-      const btnRow = card.createDiv({ cls: 'cortex-permission-btn-row' });
+      const btnRow = card.createDiv({ cls: 'obsidibot-permission-btn-row' });
       const upgradeBtn = btnRow.createEl('button', {
         cls: 'mod-cta',
         text: 'Allow full access for this session',
@@ -1169,22 +1169,22 @@ export class ClaudeView extends ItemView {
         this.handleSend();
       });
       btnRow.createEl('a', {
-        cls: 'cortex-permission-settings-link',
+        cls: 'obsidibot-permission-settings-link',
         text: 'Change default in settings',
         href: '#',
       }).addEventListener('click', (e) => {
         e.preventDefault();
         (this.app as any).setting.open();
-        (this.app as any).setting.openTabById('cortex');
+        (this.app as any).setting.openTabById('obsidibot');
       });
     }
     this.scrollToBottom();
   }
 
   private renderCodeRow(parent: HTMLElement, code: string) {
-    const row = parent.createDiv({ cls: 'cortex-setup-code-row' });
-    row.createEl('code', { text: code, cls: 'cortex-setup-code' });
-    const copyBtn = row.createEl('button', { text: 'Copy', cls: 'cortex-setup-copy-btn' });
+    const row = parent.createDiv({ cls: 'obsidibot-setup-code-row' });
+    row.createEl('code', { text: code, cls: 'obsidibot-setup-code' });
+    const copyBtn = row.createEl('button', { text: 'Copy', cls: 'obsidibot-setup-copy-btn' });
     copyBtn.addEventListener('click', () => {
       navigator.clipboard.writeText(code).then(() => {
         copyBtn.setText('Copied!');
@@ -1232,12 +1232,12 @@ export class ClaudeView extends ItemView {
     el.empty();
     el.style.display = 'block';
     this.atDropdownItems.forEach((file, i) => {
-      const item = el.createDiv({ cls: 'cortex-at-item' + (i === this.atDropdownIndex ? ' cortex-at-item-active' : '') });
-      const nameEl = item.createSpan({ cls: 'cortex-at-item-name', text: file.basename });
-      if (file.extension !== 'md') nameEl.createSpan({ cls: 'cortex-at-item-ext', text: '.' + file.extension });
+      const item = el.createDiv({ cls: 'obsidibot-at-item' + (i === this.atDropdownIndex ? ' obsidibot-at-item-active' : '') });
+      const nameEl = item.createSpan({ cls: 'obsidibot-at-item-name', text: file.basename });
+      if (file.extension !== 'md') nameEl.createSpan({ cls: 'obsidibot-at-item-ext', text: '.' + file.extension });
       const parentPath = file.parent?.path;
       if (parentPath && parentPath !== '/') {
-        item.createSpan({ cls: 'cortex-at-item-path', text: parentPath });
+        item.createSpan({ cls: 'obsidibot-at-item-path', text: parentPath });
       }
       item.addEventListener('mousedown', (e) => {
         e.preventDefault(); // prevent textarea blur before select fires
@@ -1283,20 +1283,20 @@ export class ClaudeView extends ItemView {
     if (this.pendingContexts.length === 0) { zone.style.display = 'none'; return; }
     zone.style.display = 'flex';
     for (const entry of this.pendingContexts) {
-      const row = zone.createDiv({ cls: 'cortex-pending-context-row' + (entry.pinned ? ' cortex-context-pinned' : '') });
+      const row = zone.createDiv({ cls: 'obsidibot-pending-context-row' + (entry.pinned ? ' obsidibot-context-pinned' : '') });
       const preview = entry.text.length > 80 ? entry.text.substring(0, 80) + '…' : entry.text;
       const iconName = entry.type === 'image' ? 'image' : entry.type === 'pdf' ? 'file-text' : entry.type === 'url' ? 'link' : 'paperclip';
-      const iconEl = row.createSpan({ cls: 'cortex-pending-context-icon' });
+      const iconEl = row.createSpan({ cls: 'obsidibot-pending-context-icon' });
       setIcon(iconEl, iconName);
-      row.createSpan({ cls: 'cortex-pending-context-label', text: `${entry.source}: ` });
+      row.createSpan({ cls: 'obsidibot-pending-context-label', text: `${entry.source}: ` });
       if (entry.type !== 'image' && entry.type !== 'pdf') {
-        row.createSpan({ cls: 'cortex-pending-context-preview', text: preview });
+        row.createSpan({ cls: 'obsidibot-pending-context-preview', text: preview });
       }
-      const pinBtn = row.createEl('button', { cls: 'cortex-context-pin' });
+      const pinBtn = row.createEl('button', { cls: 'obsidibot-context-pin' });
       setIcon(pinBtn, entry.pinned ? 'pin-off' : 'pin');
       pinBtn.title = entry.pinned ? 'Unpin (remove after send)' : 'Pin (keep after send)';
       pinBtn.addEventListener('click', () => { entry.pinned = !entry.pinned; this.renderContextZone(); });
-      const clearBtn = row.createEl('button', { cls: 'cortex-context-clear', text: '×' });
+      const clearBtn = row.createEl('button', { cls: 'obsidibot-context-clear', text: '×' });
       clearBtn.title = 'Remove';
       clearBtn.addEventListener('click', () => {
         this.pendingContexts.splice(this.pendingContexts.indexOf(entry), 1);
@@ -1310,14 +1310,14 @@ export class ClaudeView extends ItemView {
   }
 
   private updateTokenGauge(tokens: number) {
-    const arc = this.tokenGaugeEl.querySelector('.cortex-gauge-arc') as SVGCircleElement | null;
+    const arc = this.tokenGaugeEl.querySelector('.obsidibot-gauge-arc') as SVGCircleElement | null;
     if (!arc) return;
     const R = 7, C = R * 2 * Math.PI;
     const fraction = Math.min(tokens / ClaudeView.CONTEXT_WINDOW, 1);
     arc.setAttribute('stroke-dashoffset', String(C * (1 - fraction)));
     // Color shifts green → yellow → orange → red as context fills
     const cls = fraction < 0.6 ? 'low' : fraction < 0.8 ? 'mid' : fraction < 0.95 ? 'high' : 'full';
-    arc.setAttribute('class', `cortex-gauge-arc cortex-gauge-${cls}`);
+    arc.setAttribute('class', `obsidibot-gauge-arc obsidibot-gauge-${cls}`);
     const remaining = Math.round((1 - fraction) * 100);
     const label = tokens === 0
       ? 'Context window empty. Click to compact.'
@@ -1330,13 +1330,13 @@ export class ClaudeView extends ItemView {
   private compactSession() {
     const sessionId = this.currentSessionId;
     if (!sessionId) {
-      new Notice('Cortex: no active session to compact.');
+      new Notice('ObsidiBot: no active session to compact.');
       return;
     }
     // Optimistic reset — update gauge immediately
     this.sessionContextTokens = 0;
     this.updateTokenGauge(0);
-    new Notice('Cortex: compacting session…');
+    new Notice('ObsidiBot: compacting session…');
     const proc = spawnClaude({
       binaryPath: this.plugin.claudeBinaryPath!,
       prompt: '/compact',
@@ -1347,8 +1347,8 @@ export class ClaudeView extends ItemView {
     });
     // Drain stdout so the process doesn't stall on a full buffer
     proc.stdout?.resume();
-    proc.on('close', () => new Notice('Cortex: session compacted.'));
-    proc.on('error', (err) => new Notice(`Cortex: compaction failed — ${err.message}`));
+    proc.on('close', () => new Notice('ObsidiBot: session compacted.'));
+    proc.on('error', (err) => new Notice(`ObsidiBot: compaction failed — ${err.message}`));
   }
 
   private attachClickOutside: ((e: MouseEvent) => void) | null = null;
@@ -1369,8 +1369,8 @@ export class ClaudeView extends ItemView {
 
   private closeAttachPopover() {
     this.attachPopoverEl.style.display = 'none';
-    this.attachPopoverEl.closest('.cortex-input-area')
-      ?.querySelector('.cortex-icon-btn.is-active')
+    this.attachPopoverEl.closest('.obsidibot-input-area')
+      ?.querySelector('.obsidibot-icon-btn.is-active')
       ?.classList.remove('is-active');
     if (this.attachClickOutside) {
       document.removeEventListener('click', this.attachClickOutside);
@@ -1487,7 +1487,7 @@ export class ClaudeView extends ItemView {
 
   private saveBinaryToTmp(filename: string, data: ArrayBuffer): string {
     const vaultRoot = (this.app.vault.adapter as any).basePath;
-    const tmpDir = join(vaultRoot, '.obsidian', 'plugins', 'cortex', 'tmp');
+    const tmpDir = join(vaultRoot, '.obsidian', 'plugins', 'obsidibot', 'tmp');
     if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true });
     const filePath = join(tmpDir, filename);
     writeFileSync(filePath, Buffer.from(data));
@@ -1503,15 +1503,15 @@ export class ClaudeView extends ItemView {
 
   /** Render a vault query result card inside a response group (mode: show). */
   private renderQueryResultCard(containerEl: HTMLElement, result: VaultQueryResult) {
-    const card = containerEl.createDiv({ cls: 'cortex-vault-query-card' });
-    const header = card.createDiv({ cls: 'cortex-vault-query-header' });
-    const iconEl = header.createSpan({ cls: 'cortex-vault-query-icon' });
+    const card = containerEl.createDiv({ cls: 'obsidibot-vault-query-card' });
+    const header = card.createDiv({ cls: 'obsidibot-vault-query-header' });
+    const iconEl = header.createSpan({ cls: 'obsidibot-vault-query-icon' });
     setIcon(iconEl, 'git-branch');
-    header.createSpan({ cls: 'cortex-vault-query-label', text: queryLabel(result.query) });
+    header.createSpan({ cls: 'obsidibot-vault-query-label', text: queryLabel(result.query) });
 
-    const body = card.createDiv({ cls: 'cortex-vault-query-body' });
+    const body = card.createDiv({ cls: 'obsidibot-vault-query-body' });
     if (result.error) {
-      body.createSpan({ cls: 'cortex-vault-query-error', text: `Error: ${result.error}` });
+      body.createSpan({ cls: 'obsidibot-vault-query-error', text: `Error: ${result.error}` });
       return;
     }
 
@@ -1523,9 +1523,9 @@ export class ClaudeView extends ItemView {
             : [];
 
     if (items.length === 0) {
-      body.createSpan({ cls: 'cortex-vault-query-empty', text: 'No results.' });
+      body.createSpan({ cls: 'obsidibot-vault-query-empty', text: 'No results.' });
     } else {
-      const list = body.createEl('ul', { cls: 'cortex-vault-query-list' });
+      const list = body.createEl('ul', { cls: 'obsidibot-vault-query-list' });
       for (const item of items) {
         list.createEl('li', { text: item });
       }
@@ -1545,13 +1545,13 @@ export class ClaudeView extends ItemView {
     const injectPrompt = buildInjectMessage(results);
 
     // New response group for Claude's continuation (no user message bubble)
-    const responseGroupEl = this.messagesEl.createDiv({ cls: 'cortex-response-group' });
-    const toolEventsEl = responseGroupEl.createDiv({ cls: 'cortex-tool-events' });
+    const responseGroupEl = this.messagesEl.createDiv({ cls: 'obsidibot-response-group' });
+    const toolEventsEl = responseGroupEl.createDiv({ cls: 'obsidibot-tool-events' });
     toolEventsEl.style.display = 'none';
-    const assistantEl = responseGroupEl.createDiv({ cls: 'cortex-message cortex-assistant' });
-    const statusEl = assistantEl.createSpan({ cls: 'cortex-status', text: 'Processing vault data…' });
-    const streamingTextEl = assistantEl.createSpan({ cls: 'cortex-streaming-text' });
-    const tokenStatsEl = responseGroupEl.createDiv({ cls: 'cortex-token-stats' });
+    const assistantEl = responseGroupEl.createDiv({ cls: 'obsidibot-message obsidibot-assistant' });
+    const statusEl = assistantEl.createSpan({ cls: 'obsidibot-status', text: 'Processing vault data…' });
+    const streamingTextEl = assistantEl.createSpan({ cls: 'obsidibot-streaming-text' });
+    const tokenStatsEl = responseGroupEl.createDiv({ cls: 'obsidibot-token-stats' });
     tokenStatsEl.style.display = 'none';
     this.setSendState(true);
     this.scrollToBottom();
@@ -1608,11 +1608,11 @@ export class ClaudeView extends ItemView {
         statusEl.setText(TOOL_STATUS[key] ?? 'Working…');
         toolCallCount++;
         if (toolEventsEl.style.display === 'none') toolEventsEl.style.display = 'flex';
-        const row = toolEventsEl.createDiv({ cls: 'cortex-tool-event' });
-        const iconEl = row.createSpan({ cls: 'cortex-tool-event-icon' });
+        const row = toolEventsEl.createDiv({ cls: 'obsidibot-tool-event' });
+        const iconEl = row.createSpan({ cls: 'obsidibot-tool-event-icon' });
         setIcon(iconEl, TOOL_ICONS[key] ?? 'zap');
         const detail = extractToolDetail(key, input);
-        row.createSpan({ cls: 'cortex-tool-event-label', text: detail ? `${tool}: ${detail}` : tool });
+        row.createSpan({ cls: 'obsidibot-tool-event-label', text: detail ? `${tool}: ${detail}` : tool });
         this.scrollToBottom();
       },
       onPermissionDenied: (denials) => {
@@ -1655,11 +1655,11 @@ export class ClaudeView extends ItemView {
         }
 
         if (toolCallCount > 0) {
-          const rows = Array.from(toolEventsEl.querySelectorAll('.cortex-tool-event')) as HTMLElement[];
+          const rows = Array.from(toolEventsEl.querySelectorAll('.obsidibot-tool-event')) as HTMLElement[];
           rows.forEach(r => { r.style.display = 'none'; });
           const s = toolCallCount === 1 ? '' : 's';
           const toggle = toolEventsEl.createEl('button', {
-            cls: 'cortex-tool-toggle',
+            cls: 'obsidibot-tool-toggle',
             text: `${toolCallCount} tool call${s} ▶`,
           });
           toolEventsEl.insertBefore(toggle, toolEventsEl.firstChild);
@@ -1694,7 +1694,7 @@ export class ClaudeView extends ItemView {
   }
 
   private appendMessage(role: 'user' | 'assistant' | 'system', text: string): HTMLElement {
-    const el = this.messagesEl.createDiv({ cls: `cortex-message cortex-${role}` });
+    const el = this.messagesEl.createDiv({ cls: `obsidibot-message obsidibot-${role}` });
     el.setText(text);
     this.scrollToBottom();
     return el;
@@ -1712,7 +1712,7 @@ class AttachUrlModal extends Modal {
   onOpen() {
     this.titleEl.setText('Attach URL');
     const input = this.contentEl.createEl('input', {
-      cls: 'cortex-attach-url-input',
+      cls: 'obsidibot-attach-url-input',
       attr: { type: 'text', placeholder: 'https://…', style: 'width:100%;box-sizing:border-box;' },
     });
     input.addEventListener('keydown', (e) => {

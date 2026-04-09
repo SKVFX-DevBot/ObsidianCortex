@@ -21,10 +21,10 @@ export class SessionListModal extends Modal {
     sessions: StoredSession[],
     onSelect: (s: StoredSession) => void,
     onNewSession: () => void,
-    onDismiss: () => void = () => {},
+    onDismiss: () => void = () => { },
     activeSessionFileId?: string,
-    onRename: (session: StoredSession) => void = () => {},
-    onExportToVault: (session: StoredSession) => void = () => {},
+    onRename: (session: StoredSession) => void = () => { },
+    onExportToVault: (session: StoredSession) => void = () => { },
   ) {
     super(app);
     this.vaultRoot = vaultRoot;
@@ -42,10 +42,10 @@ export class SessionListModal extends Modal {
     const { contentEl } = this;
     contentEl.createEl('h2', { text: 'Session history' });
 
-    const topBar = contentEl.createDiv({ cls: 'cortex-modal-topbar' });
+    const topBar = contentEl.createDiv({ cls: 'obsidibot-modal-topbar' });
 
     const filterInput = topBar.createEl('input', {
-      cls: 'cortex-session-filter',
+      cls: 'obsidibot-session-filter',
       attr: { type: 'text', placeholder: 'Search sessions…' },
     });
     filterInput.addEventListener('input', (e) => {
@@ -59,11 +59,11 @@ export class SessionListModal extends Modal {
 
     const newSessionBtn = topBar.createEl('button', {
       text: '+ New',
-      cls: 'cortex-new-session-btn',
+      cls: 'obsidibot-new-session-btn',
     });
     newSessionBtn.addEventListener('click', () => this.createNewSession());
 
-    this.listContainer = contentEl.createDiv({ cls: 'cortex-session-list-container' });
+    this.listContainer = contentEl.createDiv({ cls: 'obsidibot-session-list-container' });
     this.rerenderList();
   }
 
@@ -79,12 +79,12 @@ export class SessionListModal extends Modal {
     if (this.filteredSessions.length === 0) {
       this.listContainer.createEl('p', {
         text: this.sessions.length === 0 ? 'No saved sessions yet.' : 'No sessions match your search.',
-        cls: 'cortex-modal-empty',
+        cls: 'obsidibot-modal-empty',
       });
       return;
     }
 
-    const list = this.listContainer.createEl('ul', { cls: 'cortex-session-list' });
+    const list = this.listContainer.createEl('ul', { cls: 'obsidibot-session-list' });
     for (const session of this.filteredSessions) {
       this.renderSessionItem(list, session);
     }
@@ -106,15 +106,15 @@ export class SessionListModal extends Modal {
     const resumable = !isNew && canResumeLocally(session.claudeSessionId);
     const isActive = session.id === this.activeSessionFileId;
     const cls = [
-      'cortex-session-item',
-      isNew ? 'cortex-session-new' : '',
-      !isNew && !resumable ? 'cortex-session-remote' : '',
-      isActive ? 'cortex-session-active' : '',
+      'obsidibot-session-item',
+      isNew ? 'obsidibot-session-new' : '',
+      !isNew && !resumable ? 'obsidibot-session-remote' : '',
+      isActive ? 'obsidibot-session-active' : '',
     ].filter(Boolean).join(' ');
     const item = list.createEl('li', { cls });
 
     // Drag handle (hidden while filtering)
-    const grip = item.createEl('span', { cls: 'cortex-session-drag-handle' });
+    const grip = item.createEl('span', { cls: 'obsidibot-session-drag-handle' });
     setIcon(grip, 'grip-vertical');
     if (this.isFiltering) grip.style.visibility = 'hidden';
 
@@ -123,7 +123,7 @@ export class SessionListModal extends Modal {
 
       item.addEventListener('dragstart', (e) => {
         this.draggedId = session.id;
-        item.addClass('cortex-session-dragging');
+        item.addClass('obsidibot-session-dragging');
         if (e.dataTransfer) {
           e.dataTransfer.effectAllowed = 'move';
           e.dataTransfer.setDragImage(item, 20, item.offsetHeight / 2);
@@ -132,11 +132,11 @@ export class SessionListModal extends Modal {
 
       item.addEventListener('dragend', () => {
         this.draggedId = null;
-        item.removeClass('cortex-session-dragging');
-        list.querySelectorAll('.cortex-session-dragover-above, .cortex-session-dragover-below')
+        item.removeClass('obsidibot-session-dragging');
+        list.querySelectorAll('.obsidibot-session-dragover-above, .obsidibot-session-dragover-below')
           .forEach(el => {
-            el.removeClass('cortex-session-dragover-above');
-            el.removeClass('cortex-session-dragover-below');
+            el.removeClass('obsidibot-session-dragover-above');
+            el.removeClass('obsidibot-session-dragover-below');
           });
       });
 
@@ -145,17 +145,17 @@ export class SessionListModal extends Modal {
         if (!this.draggedId || this.draggedId === session.id) return;
         const rect = item.getBoundingClientRect();
         const midY = rect.top + rect.height / 2;
-        list.querySelectorAll('.cortex-session-dragover-above, .cortex-session-dragover-below')
+        list.querySelectorAll('.obsidibot-session-dragover-above, .obsidibot-session-dragover-below')
           .forEach(el => {
-            el.removeClass('cortex-session-dragover-above');
-            el.removeClass('cortex-session-dragover-below');
+            el.removeClass('obsidibot-session-dragover-above');
+            el.removeClass('obsidibot-session-dragover-below');
           });
-        item.addClass(e.clientY < midY ? 'cortex-session-dragover-above' : 'cortex-session-dragover-below');
+        item.addClass(e.clientY < midY ? 'obsidibot-session-dragover-above' : 'obsidibot-session-dragover-below');
       });
 
       item.addEventListener('dragleave', () => {
-        item.removeClass('cortex-session-dragover-above');
-        item.removeClass('cortex-session-dragover-below');
+        item.removeClass('obsidibot-session-dragover-above');
+        item.removeClass('obsidibot-session-dragover-below');
       });
 
       item.addEventListener('drop', (e) => {
@@ -179,25 +179,25 @@ export class SessionListModal extends Modal {
         this.rerenderList();
       });
     }
-    const titleEl = item.createEl('span', { text: session.title, cls: 'cortex-session-title' });
+    const titleEl = item.createEl('span', { text: session.title, cls: 'obsidibot-session-title' });
     item.createEl('span', {
       text: new Date(session.updatedAt).toLocaleString(),
-      cls: 'cortex-session-date',
+      cls: 'obsidibot-session-date',
     });
     if (isNew) {
-      item.createEl('span', { text: 'new', cls: 'cortex-session-new-badge' });
+      item.createEl('span', { text: 'new', cls: 'obsidibot-session-new-badge' });
     } else if (!resumable) {
-      item.createEl('span', { text: 'remote', cls: 'cortex-session-remote-badge' });
+      item.createEl('span', { text: 'remote', cls: 'obsidibot-session-remote-badge' });
     }
 
-    const actionsDiv = item.createEl('div', { cls: 'cortex-session-actions' });
-    const exportBtn = actionsDiv.createEl('button', { cls: 'cortex-export-btn' });
+    const actionsDiv = item.createEl('div', { cls: 'obsidibot-session-actions' });
+    const exportBtn = actionsDiv.createEl('button', { cls: 'obsidibot-export-btn' });
     setIcon(exportBtn, 'download');
     exportBtn.title = 'Save to vault';
-    const renameBtn = actionsDiv.createEl('button', { cls: 'cortex-rename-btn' });
+    const renameBtn = actionsDiv.createEl('button', { cls: 'obsidibot-rename-btn' });
     setIcon(renameBtn, 'pencil');
     renameBtn.title = 'Rename session';
-    const deleteBtn = actionsDiv.createEl('button', { cls: 'cortex-delete-btn' });
+    const deleteBtn = actionsDiv.createEl('button', { cls: 'obsidibot-delete-btn' });
     setIcon(deleteBtn, 'trash-2');
     deleteBtn.title = 'Delete session';
 
@@ -207,7 +207,7 @@ export class SessionListModal extends Modal {
     });
 
     item.addEventListener('click', (e) => {
-      if ((e.target as HTMLElement).closest('.cortex-session-actions')) return;
+      if ((e.target as HTMLElement).closest('.obsidibot-session-actions')) return;
       this.onSelect(session);
       this.close();
     });
@@ -225,7 +225,7 @@ export class SessionListModal extends Modal {
     renameBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       const input = item.createEl('input', {
-        cls: 'cortex-rename-input',
+        cls: 'obsidibot-rename-input',
         attr: { value: session.title, type: 'text' },
       });
       titleEl.hide();

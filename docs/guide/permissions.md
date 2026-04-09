@@ -1,16 +1,16 @@
 # Permissions
 
-Cortex runs Claude Code as a subprocess and controls what it's allowed to do via Claude Code's permission flags. The permission mode is set **per session** before any message is sent — it cannot change mid-response.
+ObsidiBot runs Claude Code as a subprocess and controls what it's allowed to do via Claude Code's permission flags. The permission mode is set **per session** before any message is sent — it cannot change mid-response.
 
 ## Modes
 
-| Mode | What Claude can do |
-|---|---|
+| Mode                         | What Claude can do                                                       |
+| ---------------------------- | ------------------------------------------------------------------------ |
 | **Standard** *(recommended)* | Read and write files, use web search/fetch — Bash/shell commands blocked |
-| **Read only** | Read files, search, fetch web — no writes or shell commands |
-| **Full access** | Everything, including shell commands (Bash, git, etc.) |
+| **Read only**                | Read files, search, fetch web — no writes or shell commands              |
+| **Full access**              | Everything, including shell commands (Bash, git, etc.)                   |
 
-Configure in **Settings → Cortex → Permission mode**.
+Configure in **Settings → ObsidiBot → Permission mode**.
 
 ---
 

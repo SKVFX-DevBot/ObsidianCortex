@@ -1,19 +1,19 @@
-/* Cortex plugin styles */
+/* ObsidiBot plugin styles */
 
 /* ── Layout ── */
-.cortex-view {
+.obsidibot-view {
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
 }
 
-.cortex-view.cortex-drag-over {
+.obsidibot-view.obsidibot-drag-over {
   outline: 2px dashed var(--interactive-accent);
   outline-offset: -3px;
 }
 
-.cortex-toolbar {
+.obsidibot-toolbar {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -22,13 +22,13 @@
   flex-shrink: 0;
 }
 
-.cortex-session-status {
+.obsidibot-session-status {
   font-size: 0.8em;
   color: var(--text-muted);
   flex: 1;
 }
 
-.cortex-messages {
+.obsidibot-messages {
   flex: 1;
   overflow-y: auto;
   padding: 12px 10px;
@@ -37,14 +37,14 @@
   gap: 12px;
 }
 
-.cortex-input-area {
+.obsidibot-input-area {
   display: flex;
   flex-direction: column;
   border-top: 1px solid var(--background-modifier-border);
   flex-shrink: 0;
 }
 
-.cortex-input {
+.obsidibot-input {
   width: 100%;
   box-sizing: border-box;
   resize: vertical;
@@ -58,12 +58,12 @@
   padding: 8px 10px;
 }
 
-.cortex-input:focus {
+.obsidibot-input:focus {
   outline: none;
   box-shadow: inset 0 0 0 2px var(--interactive-accent);
 }
 
-.cortex-input-toolbar {
+.obsidibot-input-toolbar {
   display: flex;
   align-items: center;
   gap: 2px;
@@ -71,22 +71,24 @@
   background: var(--background-secondary);
 }
 
-.cortex-input-toolbar-spacer {
+.obsidibot-input-toolbar-spacer {
   flex: 1;
 }
 
-.cortex-token-gauge {
+.obsidibot-token-gauge {
   flex-shrink: 0;
   margin: 0 4px;
   opacity: 0.7;
   cursor: pointer;
 }
-.cortex-gauge-track {
+
+.obsidibot-gauge-track {
   fill: none;
   stroke: var(--text-faint);
   stroke-width: 2.5;
 }
-.cortex-gauge-arc {
+
+.obsidibot-gauge-arc {
   fill: none;
   stroke-width: 2.5;
   stroke-linecap: round;
@@ -94,21 +96,33 @@
   transform-origin: 9px 9px;
   transition: stroke-dashoffset 0.4s ease, stroke 0.4s ease;
 }
-.cortex-gauge-low  { stroke: var(--color-green); }
-.cortex-gauge-mid  { stroke: var(--color-yellow); }
-.cortex-gauge-high { stroke: var(--color-orange); }
-.cortex-gauge-full { stroke: var(--color-red); }
 
-.cortex-input-toolbar-btn {
+.obsidibot-gauge-low {
+  stroke: var(--color-green);
+}
+
+.obsidibot-gauge-mid {
+  stroke: var(--color-yellow);
+}
+
+.obsidibot-gauge-high {
+  stroke: var(--color-orange);
+}
+
+.obsidibot-gauge-full {
+  stroke: var(--color-red);
+}
+
+.obsidibot-input-toolbar-btn {
   opacity: 0.4;
 }
 
-.cortex-input-toolbar-btn:disabled {
+.obsidibot-input-toolbar-btn:disabled {
   cursor: not-allowed;
   opacity: 0.2;
 }
 
-.cortex-attach-popover {
+.obsidibot-attach-popover {
   position: absolute;
   bottom: calc(100% + 4px);
   left: 0;
@@ -121,10 +135,10 @@
   flex-direction: column;
   gap: 2px;
   min-width: 180px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.cortex-attach-option {
+.obsidibot-attach-option {
   background: none;
   border: none;
   border-radius: 4px;
@@ -135,12 +149,12 @@
   font-size: var(--font-ui-small);
 }
 
-.cortex-attach-option:hover {
+.obsidibot-attach-option:hover {
   background: var(--background-modifier-hover);
 }
 
 /* ── Icon buttons ── */
-.cortex-icon-btn {
+.obsidibot-icon-btn {
   display: flex !important;
   align-items: center;
   justify-content: center;
@@ -156,43 +170,43 @@
   flex-shrink: 0;
 }
 
-.cortex-icon-btn svg {
+.obsidibot-icon-btn svg {
   width: 14px;
   height: 14px;
 }
 
-.cortex-icon-btn:hover:not(:disabled) {
+.obsidibot-icon-btn:hover:not(:disabled) {
   background: var(--background-modifier-hover) !important;
   color: var(--text-normal);
 }
 
-.cortex-toolbar-spacer {
+.obsidibot-toolbar-spacer {
   width: 12px;
   flex-shrink: 0;
 }
 
-.cortex-toolbar-right {
+.obsidibot-toolbar-right {
   display: flex;
   align-items: center;
   gap: 2px;
 }
 
-.cortex-send {
+.obsidibot-send {
   color: var(--interactive-accent);
 }
 
-.cortex-send:hover:not(:disabled) {
+.obsidibot-send:hover:not(:disabled) {
   background: var(--interactive-accent);
   color: var(--text-on-accent);
 }
 
 /* ── About modal ── */
-.cortex-about-modal {
+.obsidibot-about-modal {
   text-align: center;
   padding: 16px 8px 8px;
 }
 
-.cortex-about-logo img {
+.obsidibot-about-logo img {
   width: 80px;
   height: 80px;
   border-radius: 16px;
@@ -200,29 +214,29 @@
   margin-bottom: 12px;
 }
 
-.cortex-about-title {
+.obsidibot-about-title {
   margin: 0 0 4px;
 }
 
-.cortex-about-version {
+.obsidibot-about-version {
   color: var(--text-muted);
   font-size: 0.85em;
   margin: 0 0 12px;
 }
 
-.cortex-about-desc {
+.obsidibot-about-desc {
   color: var(--text-muted);
   font-size: 0.9em;
   margin: 0 0 20px;
 }
 
-.cortex-about-buttons {
+.obsidibot-about-buttons {
   display: flex;
   justify-content: center;
   gap: 10px;
 }
 
-.cortex-about-link-btn {
+.obsidibot-about-link-btn {
   padding: 6px 16px;
   border-radius: 4px;
   border: 1px solid var(--background-modifier-border);
@@ -231,18 +245,18 @@
   color: var(--text-normal);
 }
 
-.cortex-about-link-btn.mod-cta {
+.obsidibot-about-link-btn.mod-cta {
   background: var(--interactive-accent);
   color: var(--text-on-accent);
   border-color: transparent;
 }
 
-.cortex-about-link-btn:hover {
+.obsidibot-about-link-btn:hover {
   opacity: 0.85;
 }
 
 /* ── Messages ── */
-.cortex-message {
+.obsidibot-message {
   padding: 8px 12px;
   border-radius: 6px;
   line-height: 1.5;
@@ -251,22 +265,23 @@
   -webkit-user-select: text;
 }
 
-.cortex-user {
+.obsidibot-user {
   background: var(--background-secondary);
   border: 1px solid var(--background-modifier-border);
   align-self: flex-end;
   max-width: 85%;
-  white-space: pre-wrap;  /* preserve newlines from Shift+Enter */
+  white-space: pre-wrap;
+  /* preserve newlines from Shift+Enter */
 }
 
-.cortex-assistant {
+.obsidibot-assistant {
   background: var(--background-primary-alt);
   align-self: flex-start;
   max-width: 95%;
   width: 100%;
 }
 
-.cortex-system {
+.obsidibot-system {
   color: var(--text-muted);
   font-size: 0.85em;
   align-self: center;
@@ -274,19 +289,26 @@
 }
 
 /* Thinking / status indicator */
-.cortex-status {
+.obsidibot-status {
   font-style: italic;
   opacity: 0.6;
-  animation: cortex-blink 1s step-end infinite;
+  animation: obsidibot-blink 1s step-end infinite;
 }
 
-@keyframes cortex-blink {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 0.15; }
+@keyframes obsidibot-blink {
+
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 0.15;
+  }
 }
 
 /* ── Session history modal ── */
-.cortex-session-list {
+.obsidibot-session-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -295,7 +317,7 @@
   gap: 4px;
 }
 
-.cortex-session-item {
+.obsidibot-session-item {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
@@ -306,20 +328,21 @@
   border: 1px solid var(--background-modifier-border);
 }
 
-.cortex-session-item:hover {
+.obsidibot-session-item:hover {
   background: var(--background-secondary);
 }
 
-.cortex-session-item.cortex-session-active {
+.obsidibot-session-item.obsidibot-session-active {
   border-left: 3px solid var(--color-accent);
-  padding-left: 9px; /* compensate for the wider border */
+  padding-left: 9px;
+  /* compensate for the wider border */
 }
 
-.cortex-session-item.cortex-session-active .cortex-session-title {
+.obsidibot-session-item.obsidibot-session-active .obsidibot-session-title {
   font-weight: 600;
 }
 
-.cortex-session-drag-handle {
+.obsidibot-session-drag-handle {
   display: flex;
   align-items: center;
   color: var(--text-faint);
@@ -328,41 +351,41 @@
   margin-right: 4px;
 }
 
-.cortex-session-item.cortex-session-dragging {
+.obsidibot-session-item.obsidibot-session-dragging {
   opacity: 0.4;
 }
 
-.cortex-session-item.cortex-session-dragover-above {
+.obsidibot-session-item.obsidibot-session-dragover-above {
   border-top: 2px solid var(--color-accent);
 }
 
-.cortex-session-item.cortex-session-dragover-below {
+.obsidibot-session-item.obsidibot-session-dragover-below {
   border-bottom: 2px solid var(--color-accent);
 }
 
-.cortex-session-title {
+.obsidibot-session-title {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.cortex-session-date {
+.obsidibot-session-date {
   font-size: 0.8em;
   color: var(--text-muted);
   flex-shrink: 0;
 }
 
-.cortex-modal-empty {
+.obsidibot-modal-empty {
   color: var(--text-muted);
   font-style: italic;
 }
 
-.cortex-session-remote {
+.obsidibot-session-remote {
   opacity: 0.5;
 }
 
-.cortex-session-remote-badge {
+.obsidibot-session-remote-badge {
   font-size: 0.7em;
   color: var(--text-muted);
   border: 1px solid var(--background-modifier-border);
@@ -371,8 +394,8 @@
   flex-shrink: 0;
 }
 
-.cortex-export-btn,
-.cortex-rename-btn {
+.obsidibot-export-btn,
+.obsidibot-rename-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -381,31 +404,31 @@
   flex-shrink: 0;
 }
 
-.cortex-session-item:hover .cortex-export-btn,
-.cortex-session-item:hover .cortex-rename-btn {
+.obsidibot-session-item:hover .obsidibot-export-btn,
+.obsidibot-session-item:hover .obsidibot-rename-btn {
   opacity: 1;
 }
 
 /* ── Export to vault modal ── */
-.cortex-export-hint {
+.obsidibot-export-hint {
   color: var(--text-muted);
   font-size: 0.9em;
   margin-bottom: 8px;
 }
 
-.cortex-export-path-input {
+.obsidibot-export-path-input {
   width: 100%;
   box-sizing: border-box;
   margin-bottom: 12px;
 }
 
-.cortex-export-btn-row {
+.obsidibot-export-btn-row {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
 }
 
-.cortex-rename-input {
+.obsidibot-rename-input {
   flex: 1;
   font-size: inherit;
   padding: 1px 4px;
@@ -416,7 +439,7 @@
 }
 
 /* ── Session history divider ── */
-.cortex-history-divider {
+.obsidibot-history-divider {
   text-align: center;
   font-size: 0.75em;
   color: var(--text-faint);
@@ -425,14 +448,22 @@
 }
 
 /* Markdown content inside assistant messages */
-.cortex-assistant p:last-child { margin-bottom: 0; }
-.cortex-assistant pre { overflow-x: auto; }
+.obsidibot-assistant p:last-child {
+  margin-bottom: 0;
+}
+
+.obsidibot-assistant pre {
+  overflow-x: auto;
+}
+
 /* Obsidian hides pre>code until async syntax highlighting adds .is-loaded;
    that callback may never fire in a custom panel, so force visibility here. */
-.cortex-assistant pre code { display: block !important; }
+.obsidibot-assistant pre code {
+  display: block !important;
+}
 
 /* ── Setup / onboarding card ── */
-.cortex-setup-card {
+.obsidibot-setup-card {
   background: var(--background-secondary);
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
@@ -442,19 +473,19 @@
   gap: 16px;
 }
 
-.cortex-setup-title {
+.obsidibot-setup-title {
   margin: 0;
   font-size: 1em;
   color: var(--text-warning);
 }
 
-.cortex-setup-intro {
+.obsidibot-setup-intro {
   margin: 0;
   color: var(--text-muted);
   font-size: 0.9em;
 }
 
-.cortex-setup-step {
+.obsidibot-setup-step {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -462,26 +493,26 @@
   border-left: 2px solid var(--background-modifier-border);
 }
 
-.cortex-setup-step-title {
+.obsidibot-setup-step-title {
   margin: 0;
   font-weight: 600;
   font-size: 0.9em;
 }
 
-.cortex-setup-note {
+.obsidibot-setup-note {
   margin: 0;
   font-size: 0.85em;
   color: var(--text-muted);
 }
 
 
-.cortex-setup-code-row {
+.obsidibot-setup-code-row {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.cortex-setup-code {
+.obsidibot-setup-code {
   flex: 1;
   font-family: var(--font-monospace);
   font-size: 0.85em;
@@ -494,7 +525,7 @@
   overflow-x: auto;
 }
 
-.cortex-setup-copy-btn {
+.obsidibot-setup-copy-btn {
   font-size: 0.75em;
   padding: 3px 8px;
   flex-shrink: 0;
@@ -505,11 +536,11 @@
   color: var(--text-muted);
 }
 
-.cortex-setup-copy-btn:hover {
+.obsidibot-setup-copy-btn:hover {
   color: var(--text-normal);
 }
 
-.cortex-setup-path-input {
+.obsidibot-setup-path-input {
   flex: 1;
   font-family: var(--font-monospace);
   font-size: 0.85em;
@@ -520,41 +551,41 @@
   color: var(--text-normal);
 }
 
-.cortex-setup-path-input:focus {
+.obsidibot-setup-path-input:focus {
   outline: none;
   border-color: var(--interactive-accent);
 }
 
-.cortex-setup-btn-row {
+.obsidibot-setup-btn-row {
   display: flex;
   align-items: center;
   gap: 10px;
   padding-top: 4px;
 }
 
-.cortex-setup-docs-link {
+.obsidibot-setup-docs-link {
   font-size: 0.85em;
   color: var(--text-accent);
   text-decoration: none;
   flex: 1;
 }
 
-.cortex-setup-docs-link:hover {
+.obsidibot-setup-docs-link:hover {
   text-decoration: underline;
 }
 
-.cortex-setup-check-btn {
+.obsidibot-setup-check-btn {
   flex-shrink: 0;
 }
 
-.cortex-setup-error {
+.obsidibot-setup-error {
   margin: 4px 0 0;
   font-size: 0.85em;
   color: var(--text-error);
 }
 
 /* ── Response group (tool events + assistant bubble) ── */
-.cortex-response-group {
+.obsidibot-response-group {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -562,7 +593,7 @@
   width: 100%;
 }
 
-.cortex-token-stats {
+.obsidibot-token-stats {
   font-size: 0.72em;
   color: var(--text-faint);
   padding: 0 2px 4px 2px;
@@ -570,7 +601,7 @@
 }
 
 /* ── Tool call events ── */
-.cortex-tool-events {
+.obsidibot-tool-events {
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -582,37 +613,37 @@
   color: var(--text-muted);
 }
 
-.cortex-tool-event {
+.obsidibot-tool-event {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 4px 0;
 }
 
-.cortex-tool-event + .cortex-tool-event {
+.obsidibot-tool-event+.obsidibot-tool-event {
   border-top: 1px solid var(--background-modifier-border);
 }
 
-.cortex-tool-event-icon {
+.obsidibot-tool-event-icon {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   opacity: 0.7;
 }
 
-.cortex-tool-event-icon svg {
+.obsidibot-tool-event-icon svg {
   width: 12px;
   height: 12px;
 }
 
-.cortex-tool-event-label {
+.obsidibot-tool-event-label {
   font-family: var(--font-monospace);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.cortex-tool-toggle {
+.obsidibot-tool-toggle {
   background: none;
   border: none;
   cursor: pointer;
@@ -623,12 +654,12 @@
   width: 100%;
 }
 
-.cortex-tool-toggle:hover {
+.obsidibot-tool-toggle:hover {
   color: var(--text-muted);
 }
 
 /* ── Permission denial card ── */
-.cortex-permission-card {
+.obsidibot-permission-card {
   background: var(--background-secondary);
   border: 1px solid var(--color-orange);
   border-radius: 6px;
@@ -639,13 +670,13 @@
   font-size: 0.88em;
 }
 
-.cortex-permission-title {
+.obsidibot-permission-title {
   margin: 0;
   font-weight: 600;
   color: var(--color-orange);
 }
 
-.cortex-permission-list {
+.obsidibot-permission-list {
   margin: 0;
   padding-left: 18px;
   color: var(--text-muted);
@@ -653,29 +684,29 @@
   font-size: 0.9em;
 }
 
-.cortex-permission-btn-row {
+.obsidibot-permission-btn-row {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.cortex-permission-settings-link {
+.obsidibot-permission-settings-link {
   font-size: 0.85em;
   color: var(--text-accent);
   text-decoration: none;
 }
 
-.cortex-permission-settings-link:hover {
+.obsidibot-permission-settings-link:hover {
   text-decoration: underline;
 }
 
 /* ── UI Bridge confirmation modal ── */
-.cortex-confirm-desc {
+.obsidibot-confirm-desc {
   margin: 0 0 16px;
   color: var(--text-normal);
 }
 
-.cortex-confirm-check-row {
+.obsidibot-confirm-check-row {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -685,14 +716,14 @@
   cursor: pointer;
 }
 
-.cortex-confirm-btn-row {
+.obsidibot-confirm-btn-row {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
 }
 
 /* ── Command allowlist browser (settings) ── */
-.cortex-command-list {
+.obsidibot-command-list {
   max-height: 240px;
   overflow-y: auto;
   border: 1px solid var(--background-modifier-border);
@@ -700,7 +731,7 @@
   margin: 4px 0 4px;
 }
 
-.cortex-command-row {
+.obsidibot-command-row {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -709,49 +740,49 @@
   cursor: pointer;
 }
 
-.cortex-command-row:last-child {
+.obsidibot-command-row:last-child {
   border-bottom: none;
 }
 
-.cortex-command-row:hover {
+.obsidibot-command-row:hover {
   background: var(--background-modifier-hover);
 }
 
-.cortex-command-name {
+.obsidibot-command-name {
   font-size: var(--font-ui-small);
   color: var(--text-normal);
   cursor: pointer;
 }
 
-.cortex-command-empty {
+.obsidibot-command-empty {
   color: var(--text-muted);
   font-style: italic;
   padding: 10px;
   margin: 0;
 }
 
-.cortex-command-count {
+.obsidibot-command-count {
   font-size: var(--font-ui-small);
   color: var(--text-muted);
   margin: 0 0 16px;
 }
 
-.cortex-command-row--orphaned {
-  background: var(--background-modifier-error-rgb, rgba(255,80,80,0.05));
+.obsidibot-command-row--orphaned {
+  background: var(--background-modifier-error-rgb, rgba(255, 80, 80, 0.05));
 }
 
-.cortex-command-orphan-badge {
+.obsidibot-command-orphan-badge {
   font-size: var(--font-ui-smaller);
   color: var(--text-error);
   margin-left: 4px;
 }
 
 /* ── @-mention autocomplete dropdown ── */
-.cortex-input-area {
+.obsidibot-input-area {
   position: relative;
 }
 
-.cortex-at-dropdown {
+.obsidibot-at-dropdown {
   position: absolute;
   bottom: 100%;
   left: 0;
@@ -765,7 +796,7 @@
   z-index: 100;
 }
 
-.cortex-at-item {
+.obsidibot-at-item {
   display: flex;
   align-items: baseline;
   gap: 8px;
@@ -773,24 +804,24 @@
   cursor: pointer;
 }
 
-.cortex-at-item:hover,
-.cortex-at-item-active {
+.obsidibot-at-item:hover,
+.obsidibot-at-item-active {
   background: var(--background-modifier-hover);
 }
 
-.cortex-at-item-name {
+.obsidibot-at-item-name {
   flex-shrink: 0;
   font-weight: 500;
 }
 
-.cortex-at-item-ext {
+.obsidibot-at-item-ext {
   font-size: 0.75em;
   font-weight: 400;
   color: var(--text-muted);
   margin-left: 2px;
 }
 
-.cortex-at-item-path {
+.obsidibot-at-item-path {
   font-size: 0.75em;
   color: var(--text-faint);
   overflow: hidden;
@@ -799,7 +830,7 @@
 }
 
 /* ── Pending selection context bar (above textarea) ── */
-.cortex-pending-context {
+.obsidibot-pending-context {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -809,32 +840,32 @@
   font-size: 0.82em;
 }
 
-.cortex-pending-context-row {
+.obsidibot-pending-context-row {
   display: flex;
   align-items: center;
   gap: 6px;
   overflow: hidden;
 }
 
-.cortex-pending-context-icon {
+.obsidibot-pending-context-icon {
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
   color: var(--interactive-accent);
 }
 
-.cortex-pending-context-icon svg {
+.obsidibot-pending-context-icon svg {
   width: 12px;
   height: 12px;
 }
 
-.cortex-pending-context-label {
+.obsidibot-pending-context-label {
   color: var(--interactive-accent);
   font-weight: 500;
   flex-shrink: 0;
 }
 
-.cortex-pending-context-preview {
+.obsidibot-pending-context-preview {
   color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -842,7 +873,7 @@
   flex: 1;
 }
 
-.cortex-context-pin {
+.obsidibot-context-pin {
   background: none;
   border: none;
   cursor: pointer;
@@ -854,20 +885,20 @@
   align-items: center;
 }
 
-.cortex-context-pin:hover {
+.obsidibot-context-pin:hover {
   color: var(--color-accent);
 }
 
-.cortex-context-pinned .cortex-context-pin {
+.obsidibot-context-pinned .obsidibot-context-pin {
   color: var(--color-accent);
 }
 
-.cortex-context-pinned {
+.obsidibot-context-pinned {
   border-left: 2px solid var(--color-accent);
   padding-left: 4px;
 }
 
-.cortex-context-clear {
+.obsidibot-context-clear {
   background: none;
   border: none;
   cursor: pointer;
@@ -878,12 +909,12 @@
   flex-shrink: 0;
 }
 
-.cortex-context-clear:hover {
+.obsidibot-context-clear:hover {
   color: var(--text-normal);
 }
 
 /* Vault query result card (show + inject modes) */
-.cortex-vault-query-card {
+.obsidibot-vault-query-card {
   margin: 4px 0 2px 0;
   border: 1px solid var(--background-modifier-border);
   border-radius: 6px;
@@ -891,7 +922,7 @@
   font-size: 0.85em;
 }
 
-.cortex-vault-query-header {
+.obsidibot-vault-query-header {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -901,37 +932,37 @@
   font-size: 0.9em;
 }
 
-.cortex-vault-query-icon {
+.obsidibot-vault-query-icon {
   flex-shrink: 0;
   width: 14px;
   height: 14px;
   color: var(--color-accent);
 }
 
-.cortex-vault-query-label {
+.obsidibot-vault-query-label {
   font-weight: 500;
   color: var(--text-normal);
 }
 
-.cortex-vault-query-body {
+.obsidibot-vault-query-body {
   padding: 6px 10px;
   background: var(--background-primary);
 }
 
-.cortex-vault-query-list {
+.obsidibot-vault-query-list {
   margin: 0;
   padding-left: 16px;
   color: var(--text-muted);
   line-height: 1.6;
 }
 
-.cortex-vault-query-list li {
+.obsidibot-vault-query-list li {
   font-family: var(--font-monospace);
   font-size: 0.9em;
 }
 
-.cortex-vault-query-empty,
-.cortex-vault-query-error {
+.obsidibot-vault-query-empty,
+.obsidibot-vault-query-error {
   color: var(--text-faint);
   font-style: italic;
 }

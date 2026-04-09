@@ -3,7 +3,7 @@ import { log, warn } from './utils/logger';
 import { ACTION_PREFIX } from './constants';
 export { ACTION_PREFIX } from './constants';
 
-export interface CortexAction {
+export interface ObsidiBotAction {
   action: string;
   [key: string]: unknown;
 }
@@ -36,23 +36,23 @@ class ConfirmCommandModal extends Modal {
   }
 
   onOpen() {
-    this.titleEl.setText('Cortex — Unlisted Command');
+    this.titleEl.setText('ObsidiBot — Unlisted Command');
     const { contentEl } = this;
 
     contentEl.createEl('p', {
       text: `Claude wants to run: "${this.commandName}". This command isn't in your allowlist.`,
-      cls: 'cortex-confirm-desc',
+      cls: 'obsidibot-confirm-desc',
     });
 
     let remember = false;
-    const checkRow = contentEl.createDiv({ cls: 'cortex-confirm-check-row' });
+    const checkRow = contentEl.createDiv({ cls: 'obsidibot-confirm-check-row' });
     const checkbox = checkRow.createEl('input', { type: 'checkbox' });
-    checkbox.id = 'cortex-confirm-remember';
+    checkbox.id = 'obsidibot-confirm-remember';
     checkbox.addEventListener('change', () => { remember = checkbox.checked; });
     const label = checkRow.createEl('label', { text: 'Don\'t ask again' });
-    label.htmlFor = 'cortex-confirm-remember';
+    label.htmlFor = 'obsidibot-confirm-remember';
 
-    const btnRow = contentEl.createDiv({ cls: 'cortex-confirm-btn-row' });
+    const btnRow = contentEl.createDiv({ cls: 'obsidibot-confirm-btn-row' });
     const allowBtn = btnRow.createEl('button', { text: 'Allow', cls: 'mod-cta' });
     allowBtn.addEventListener('click', () => this.settle({ allow: true, remember }));
     const denyBtn = btnRow.createEl('button', { text: 'Deny' });
@@ -69,15 +69,15 @@ class ConfirmCommandModal extends Modal {
  * Scan accumulated text for complete @@CORTEX_ACTION lines.
  * Returns cleaned text (lines stripped) and parsed actions.
  */
-export function extractActions(text: string): { clean: string; actions: CortexAction[] } {
-  const actions: CortexAction[] = [];
+export function extractActions(text: string): { clean: string; actions: ObsidiBotAction[] } {
+  const actions: ObsidiBotAction[] = [];
   const lines = text.split('\n');
   const kept: string[] = [];
 
   for (const line of lines) {
     if (line.startsWith(ACTION_PREFIX)) {
       try {
-        const action = JSON.parse(line.slice(ACTION_PREFIX.length)) as CortexAction;
+        const action = JSON.parse(line.slice(ACTION_PREFIX.length)) as ObsidiBotAction;
         actions.push(action);
         log('UIBridge: parsed action:', action.action, action);
       } catch {
@@ -92,11 +92,11 @@ export function extractActions(text: string): { clean: string; actions: CortexAc
 }
 
 /**
- * Execute a single Cortex UI action via the Obsidian API.
+ * Execute a single ObsidiBot UI action via the Obsidian API.
  * The 6 built-in actions execute immediately (transparency via show-notice).
  * run-command requires the commandId to be in the allowlist, or prompts if confirmUnlistedCommands is true.
  */
-export async function executeAction(app: App, action: CortexAction, options: UIBridgeOptions = {}): Promise<void> {
+export async function executeAction(app: App, action: ObsidiBotAction, options: UIBridgeOptions = {}): Promise<void> {
   const {
     commandAllowlist = [],
     commandDenylist = [],
@@ -184,7 +184,7 @@ export async function executeAction(app: App, action: CortexAction, options: UIB
         if (executed) log('UIBridge: run-command executed:', commandId);
         else {
           warn('UIBridge: run-command — command not found or failed:', commandId);
-          new Notice(`Cortex: Could not run "${displayName}" — the command wasn't found. It may belong to a plugin that isn't enabled.`, 6000);
+          new Notice(`ObsidiBot: Could not run "${displayName}" — the command wasn't found. It may belong to a plugin that isn't enabled.`, 6000);
         }
       } else if (commandDenylist.includes(commandId)) {
         // Permanently denied (and not in allowlist) — hard block silently
@@ -200,17 +200,17 @@ export async function executeAction(app: App, action: CortexAction, options: UIB
           if (executed) log('UIBridge: run-command executed:', commandId);
           else {
             warn('UIBridge: run-command — command not found or failed:', commandId);
-            new Notice(`Cortex: Could not run "${displayName}" — the command wasn't found. It may belong to a plugin that isn't enabled.`, 6000);
+            new Notice(`ObsidiBot: Could not run "${displayName}" — the command wasn't found. It may belong to a plugin that isn't enabled.`, 6000);
           }
         } else {
           if (remember && onAddToDenylist) await onAddToDenylist(commandId);
           log('UIBridge: run-command denied by user:', commandId);
-          new Notice(`Cortex: Command "${displayName}" denied.`, 3000);
+          new Notice(`ObsidiBot: Command "${displayName}" denied.`, 3000);
         }
       } else {
         // Prompting disabled — hard block with notice
         warn('UIBridge: run-command blocked — not in allowlist:', commandId);
-        new Notice(`Cortex: Claude wanted to run "${displayName}" but it isn't in the Command Allowlist. Add it in Settings → Cortex to enable it.`, 8000);
+        new Notice(`ObsidiBot: Claude wanted to run "${displayName}" but it isn't in the Command Allowlist. Add it in Settings → ObsidiBot to enable it.`, 8000);
       }
       break;
     }

@@ -14,15 +14,15 @@ export class ExportToVaultModal extends Modal {
     contentEl.createEl('h2', { text: 'Export session to vault' });
     contentEl.createEl('p', {
       text: 'Vault-relative path for the note (folder will be created if needed):',
-      cls: 'cortex-export-hint',
+      cls: 'obsidibot-export-hint',
     });
 
     const input = contentEl.createEl('input', {
-      cls: 'cortex-export-path-input',
+      cls: 'obsidibot-export-path-input',
       attr: { type: 'text', value: this.defaultPath },
     });
 
-    const btnRow = contentEl.createDiv({ cls: 'cortex-export-btn-row' });
+    const btnRow = contentEl.createDiv({ cls: 'obsidibot-export-btn-row' });
     btnRow.createEl('button', { text: 'Cancel' })
       .addEventListener('click', () => this.close());
     const exportBtn = btnRow.createEl('button', { text: 'Save to vault', cls: 'mod-cta' });

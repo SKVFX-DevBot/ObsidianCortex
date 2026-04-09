@@ -1,6 +1,6 @@
 {
-  "id": "cortex",
-  "name": "Cortex",
+  "id": "obsidibot",
+  "name": "ObsidiBot",
   "version": "1.5.4",
   "minAppVersion": "1.4.0",
   "description": "Claude Code agentic file management for Obsidian vaults",

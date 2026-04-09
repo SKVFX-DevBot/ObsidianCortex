@@ -1,11 +1,11 @@
 .obsidian/*
 node_modules/
 main.js
-_cortex-debug.log
+_obsidibot-debug.log
 # Generated at runtime when plugin dev folder is opened directly as a vault
 /obsidian-commands.md
-cortex-debug.log
-# Pasted images saved by Cortex clipboard paste feature
+obsidibot-debug.log
+# Pasted images saved by ObsidiBot clipboard paste feature
 tmp/
 
 # Obsidian plugin runtime data (machine-specific)
@@ -14,10 +14,10 @@ data.json
 # Claude Code — machine-specific and runtime files
 .claude/settings.local.json
 .claude/settings.json
-# Cortex runtime data written when plugin runs from symlinked dev folder
-# In production vaults this lives at .obsidian/plugins/cortex/.claude/sessions/
+# ObsidiBot runtime data written when plugin runs from symlinked dev folder
+# In production vaults this lives at .obsidian/plugins/obsidibot/.claude/sessions/
 .claude/sessions/
 
 notes/COMMIT_DRAFT.md
-Cortex_Marketing/
+ObsidiBot_Marketing/
 docs/.vitepress/cache/

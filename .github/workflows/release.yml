@@ -43,10 +43,10 @@ jobs:
 
       - name: Package release zip
         run: |
-          mkdir -p dist/cortex
-          cp main.js manifest.json styles.css dist/cortex/
+          mkdir -p dist/obsidibot
+          cp main.js manifest.json styles.css dist/obsidibot/
           cd dist
-          zip -r cortex-${{ needs.release-please.outputs.tag_name }}.zip cortex/
+          zip -r obsidibot-${{ needs.release-please.outputs.tag_name }}.zip obsidibot/
 
       - name: Upload release assets
         env:
@@ -56,4 +56,4 @@ jobs:
             main.js \
             manifest.json \
             styles.css \
-            dist/cortex-${{ needs.release-please.outputs.tag_name }}.zip
+            dist/obsidibot-${{ needs.release-please.outputs.tag_name }}.zip

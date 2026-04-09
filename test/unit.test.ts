@@ -29,7 +29,7 @@ import { extractToolDetail } from '../src/utils/toolFormatting';
 let tmpDir: string;
 
 before(() => {
-  tmpDir = mkdtempSync(join(tmpdir(), 'cortex-test-'));
+  tmpDir = mkdtempSync(join(tmpdir(), 'obsidibot-test-'));
 });
 
 after(() => {
@@ -257,11 +257,11 @@ describe('permissionArgs', () => {
 });
 
 describe('parseStreamOutput', () => {
-  function emit(proc: any, chunks: string[], stderrChunks: string[] = []): Promise<{ texts: string[], tools: string[], denials: Array<{tool: string}>, sessionId?: string, errors: string[] }> {
+  function emit(proc: any, chunks: string[], stderrChunks: string[] = []): Promise<{ texts: string[], tools: string[], denials: Array<{ tool: string }>, sessionId?: string, errors: string[] }> {
     return new Promise((resolve) => {
       const texts: string[] = [];
       const tools: string[] = [];
-      const denials: Array<{tool: string}> = [];
+      const denials: Array<{ tool: string }> = [];
       const errors: string[] = [];
       let sessionId: string | undefined;
 
@@ -430,11 +430,11 @@ describe('parseStreamOutput', () => {
       parseStreamOutput(proc, {
         onText: (t) => texts.push(t),
         onAction: (line) => actions.push(line),
-        onToolCall: () => {},
-        onPermissionDenied: () => {},
-        onUsage: () => {},
+        onToolCall: () => { },
+        onPermissionDenied: () => { },
+        onUsage: () => { },
         onDone: () => resolve(),
-        onError: () => {},
+        onError: () => { },
       });
       for (const chunk of chunks) proc.stdout.emit('data', Buffer.from(chunk));
       proc.emit('close', 0);
@@ -491,12 +491,12 @@ describe('parseStreamOutput', () => {
     await new Promise<void>((resolve) => {
       parseStreamOutput(proc, {
         onText: (t) => eventLog.push(`text:${t}`),
-        onAction: () => {},
+        onAction: () => { },
         onToolCall: (name) => eventLog.push(`tool:${name}`),
-        onPermissionDenied: () => {},
-        onUsage: () => {},
+        onPermissionDenied: () => { },
+        onUsage: () => { },
         onDone: () => resolve(),
-        onError: () => {},
+        onError: () => { },
       });
       for (const chunk of chunks) proc.stdout.emit('data', Buffer.from(chunk));
       proc.emit('close', 0);

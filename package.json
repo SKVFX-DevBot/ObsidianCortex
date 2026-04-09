@@ -1,5 +1,5 @@
 {
-  "name": "cortex",
+  "name": "obsidibot",
   "version": "1.5.4",
   "description": "Claude Code agentic file management for Obsidian vaults",
   "main": "main.js",

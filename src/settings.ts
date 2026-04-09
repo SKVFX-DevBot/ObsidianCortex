@@ -1,9 +1,9 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import type CortexPlugin from '../main';
+import type ObsidiBotPlugin from '../main';
 import type { PermissionMode } from './ClaudeProcess';
 export type { PermissionMode };
 
-export interface CortexSettings {
+export interface ObsidiBotSettings {
   binaryPath: string;
   contextFilePath: string;
   sendOnEnter: boolean;
@@ -41,7 +41,7 @@ export interface CortexSettings {
   lastActiveSessionId: string;
 }
 
-export const DEFAULT_SETTINGS: CortexSettings = {
+export const DEFAULT_SETTINGS: ObsidiBotSettings = {
   binaryPath: '',
   contextFilePath: '_claude-context.md',
   sendOnEnter: true,
@@ -55,19 +55,19 @@ export const DEFAULT_SETTINGS: CortexSettings = {
   commandDenylist: [],
   permissionMode: 'standard',
   logEnabled: true,
-  logFilePath: '.obsidian/plugins/cortex/cortex-debug.log',
+  logFilePath: '.obsidian/plugins/obsidibot/obsidibot-debug.log',
   logVerbosity: 'normal',
   atMentionExtensions: 'md, pdf, fountain, txt',
   injectSplitPaneFiles: true,
   injectStackedTabFiles: false,
-  exportFolder: 'Cortex Exports',
+  exportFolder: 'ObsidiBot Exports',
   lastActiveSessionId: '',
 };
 
-export class CortexSettingsTab extends PluginSettingTab {
-  plugin: CortexPlugin;
+export class ObsidiBotSettingsTab extends PluginSettingTab {
+  plugin: ObsidiBotPlugin;
 
-  constructor(app: App, plugin: CortexPlugin) {
+  constructor(app: App, plugin: ObsidiBotPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
@@ -227,7 +227,7 @@ export class CortexSettingsTab extends PluginSettingTab {
       .setDesc('Vault-relative folder where "Export session to vault" saves notes. Created automatically if it does not exist.')
       .addText((text) =>
         text
-          .setPlaceholder('Cortex Exports')
+          .setPlaceholder('ObsidiBot Exports')
           .setValue(this.plugin.settings.exportFolder)
           .onChange(async (value) => {
             this.plugin.settings.exportFolder = value;
@@ -310,7 +310,7 @@ export class CortexSettingsTab extends PluginSettingTab {
 
     containerEl.createEl('p', {
       text: 'Obsidian commands Claude is allowed to run directly. ' +
-            'Search and check commands to enable them. Allowlisted commands run immediately; others prompt for approval.',
+        'Search and check commands to enable them. Allowlisted commands run immediately; others prompt for approval.',
       cls: 'setting-item-description',
     });
 
@@ -323,8 +323,8 @@ export class CortexSettingsTab extends PluginSettingTab {
           .onChange(val => { commandSearchQuery = val; renderCommandList(); })
       );
 
-    const commandListEl = containerEl.createDiv({ cls: 'cortex-command-list' });
-    const commandCountEl = containerEl.createEl('p', { cls: 'cortex-command-count' });
+    const commandListEl = containerEl.createDiv({ cls: 'obsidibot-command-list' });
+    const commandCountEl = containerEl.createEl('p', { cls: 'obsidibot-command-count' });
 
     const allCommands = Object.values(
       (this.app as any).commands.commands as Record<string, { id: string; name: string }>
@@ -352,9 +352,9 @@ export class CortexSettingsTab extends PluginSettingTab {
         const allCommandIds = new Set(allCommands.map(c => c.id));
         const orphaned = this.plugin.settings.commandAllowlist.filter(id => !allCommandIds.has(id));
         for (const id of orphaned) {
-          const row = commandListEl.createDiv({ cls: 'cortex-command-row cortex-command-row--orphaned' });
+          const row = commandListEl.createDiv({ cls: 'obsidibot-command-row obsidibot-command-row--orphaned' });
           const checkbox = row.createEl('input', { type: 'checkbox' });
-          checkbox.id = `cortex-cmd-orphan-${id}`;
+          checkbox.id = `obsidibot-cmd-orphan-${id}`;
           checkbox.checked = true;
           checkbox.addEventListener('change', async () => {
             this.plugin.settings.commandAllowlist = this.plugin.settings.commandAllowlist.filter(x => x !== id);
@@ -363,10 +363,10 @@ export class CortexSettingsTab extends PluginSettingTab {
             renderCommandList();
             updateCountText();
           });
-          const label = row.createEl('label', { cls: 'cortex-command-name' });
-          label.htmlFor = `cortex-cmd-orphan-${id}`;
+          const label = row.createEl('label', { cls: 'obsidibot-command-name' });
+          label.htmlFor = `obsidibot-cmd-orphan-${id}`;
           label.createEl('span', { text: id });
-          label.createEl('span', { text: ' — not found', cls: 'cortex-command-orphan-badge' });
+          label.createEl('span', { text: ' — not found', cls: 'obsidibot-command-orphan-badge' });
         }
       }
 
@@ -381,12 +381,12 @@ export class CortexSettingsTab extends PluginSettingTab {
       });
 
       if (filtered.length === 0) {
-        commandListEl.createEl('p', { text: 'No commands match your search.', cls: 'cortex-command-empty' });
+        commandListEl.createEl('p', { text: 'No commands match your search.', cls: 'obsidibot-command-empty' });
       } else {
         for (const cmd of filtered) {
-          const row = commandListEl.createDiv({ cls: 'cortex-command-row' });
+          const row = commandListEl.createDiv({ cls: 'obsidibot-command-row' });
           const checkbox = row.createEl('input', { type: 'checkbox' });
-          checkbox.id = `cortex-cmd-${cmd.id}`;
+          checkbox.id = `obsidibot-cmd-${cmd.id}`;
           checkbox.checked = this.plugin.settings.commandAllowlist.includes(cmd.id);
           checkbox.addEventListener('change', async () => {
             if (checkbox.checked) {
@@ -400,8 +400,8 @@ export class CortexSettingsTab extends PluginSettingTab {
             this.plugin.notifyAllowlistChanged(this.plugin.settings.commandAllowlist);
             updateCountText();
           });
-          const label = row.createEl('label', { text: cmd.name, cls: 'cortex-command-name' });
-          label.htmlFor = `cortex-cmd-${cmd.id}`;
+          const label = row.createEl('label', { text: cmd.name, cls: 'obsidibot-command-name' });
+          label.htmlFor = `obsidibot-cmd-${cmd.id}`;
         }
       }
 
@@ -431,10 +431,10 @@ export class CortexSettingsTab extends PluginSettingTab {
       .setDesc('Vault-relative path for the log file. Defaults to the plugin folder so it stays out of your vault.')
       .addText((text) =>
         text
-          .setPlaceholder('.obsidian/plugins/cortex/cortex-debug.log')
+          .setPlaceholder('.obsidian/plugins/obsidibot/obsidibot-debug.log')
           .setValue(this.plugin.settings.logFilePath)
           .onChange(async (value) => {
-            this.plugin.settings.logFilePath = value || '_cortex-debug.log';
+            this.plugin.settings.logFilePath = value || '_obsidibot-debug.log';
             await this.plugin.saveSettings();
             this.plugin.reconfigureLogger();
           })

@@ -1,15 +1,15 @@
 export default {
-  base: '/ObsidianCortex/',
-  title: 'Cortex',
+  base: '/ObsidiBot/',
+  title: 'ObsidiBot',
   description: 'A Claude Code agent inside your Obsidian vault',
 
   head: [
-    ['link', { rel: 'icon', href: '/Cortex/favicon.ico' }],
+    ['link', { rel: 'icon', href: '/ObsidiBot/favicon.ico' }],
   ],
 
   themeConfig: {
     logo: '../assets/media/logo.jpg',
-    siteTitle: 'Cortex',
+    siteTitle: 'ObsidiBot',
 
     nav: [
       { text: 'Guide', link: '/guide/getting-started' },
@@ -17,9 +17,9 @@ export default {
       {
         text: 'Community',
         items: [
-          { text: 'GitHub', link: 'https://github.com/ScottKirvan/ObsidianCortex' },
+          { text: 'GitHub', link: 'https://github.com/ScottKirvan/ObsidiBot' },
           { text: 'Discord', link: 'https://discord.gg/TN6XJSNK5Y' },
-          { text: 'Releases', link: 'https://github.com/ScottKirvan/ObsidianCortex/releases' },
+          { text: 'Releases', link: 'https://github.com/ScottKirvan/ObsidiBot/releases' },
         ]
       }
     ],
@@ -33,7 +33,7 @@ export default {
         ]
       },
       {
-        text: 'Using Cortex',
+        text: 'Using ObsidiBot',
         items: [
           { text: 'Chat Panel', link: '/guide/chat-panel' },
           { text: 'Session Manager', link: '/guide/sessions' },
@@ -58,7 +58,7 @@ export default {
     ],
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/ScottKirvan/ObsidianCortex' },
+      { icon: 'github', link: 'https://github.com/ScottKirvan/ObsidiBot' },
       { icon: 'discord', link: 'https://discord.gg/TN6XJSNK5Y' },
     ],
 
@@ -68,7 +68,7 @@ export default {
     },
 
     editLink: {
-      pattern: 'https://github.com/ScottKirvan/ObsidianCortex/edit/main/docs/:path',
+      pattern: 'https://github.com/ScottKirvan/ObsidiBot/edit/main/docs/:path',
       text: 'Edit this page on GitHub'
     },
 
